@@ -7,7 +7,7 @@ const NoFeeTag = () => (
   </Tag>
 )
 
-const RiskTag = ({ risk }) => (
+const RiskTag = ({ risk }: any) => (
   <Tag variant={risk >= 3 ? 'failure' : 'success'} outline startIcon={<VerifiedIcon />}>
     Risk {risk}
   </Tag>

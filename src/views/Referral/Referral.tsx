@@ -1,10 +1,10 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { Heading, Text, BaseLayout, Card, CardBody, Button, Toast, toastTypes } from '@hulkfinance/hulk-uikit'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
-import Page from 'components/layout/Page'
 import { ToastContext } from '../../contexts/ToastContext'
 import UnlockButton from '../../components/UnlockButton'
+import useActiveWeb3React from '../../hooks/useActiveWeb3React'
+import Page from '../../components/layout/Page'
 
 const Banner = styled.div`
   width: 100%;
@@ -134,7 +134,7 @@ const ReferralLinkInput = styled.input`
 
 const Referral: React.FC = () => {
   const [isCopiedLink, setIsCopiedLink] = useState<boolean>(false)
-  const { account } = useWallet()
+  const { account } = useActiveWeb3React()
   const { addToast } = useContext(ToastContext)
   const [referralLinkValue, setReferralLinkValue] = useState<string>('')
   useEffect(() => {

@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
 import { fromWei } from 'web3-utils'
 import { Button, Card, CardBody, Flex, Heading, Input, Text } from '@hulkfinance/hulk-uikit'
 import hulk from '../../../assets/images/HulkLogo.svg'
 import UnlockButton from '../../../components/UnlockButton'
 import { shortBalance } from '../../../utils'
 import usePresale, { ECoins } from '../../../hooks/usePresale'
+import useActiveWeb3React from '../../../hooks/useActiveWeb3React'
 
 
 const FormStyledCard = styled(Card)`
@@ -220,7 +220,7 @@ const ButtonBlock = styled(Flex)`
 `
 
 function Form() {
-  const { account } = useWallet()
+  const { account } = useActiveWeb3React()
 
   const {
     onBuyTokens,

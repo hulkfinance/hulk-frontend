@@ -1,25 +1,26 @@
 import BigNumber from 'bignumber.js'
 import React, { useCallback, useMemo, useState } from 'react'
 import { Button, Modal } from '@hulkfinance/hulk-uikit'
-import ModalActions from 'components/ModalActions'
-import TokenInput from 'components/TokenInput'
-import useI18n from 'hooks/useI18n'
-import { getFullDisplayBalance } from 'utils/formatBalance'
+import useI18n from '../../../hooks/useI18n'
+import TokenInput from '../../../components/TokenInput'
+import { getFullDisplayBalance } from '../../../utils/formatBalance'
+import ModalActions from '../../../components/ModalActions'
 
 interface WithdrawModalProps {
   max: BigNumber
   onConfirm: (amount: string) => void
   onDismiss?: () => void
   tokenName?: string
+  decimals: number
 }
 
-const WithdrawModal: React.FC<WithdrawModalProps> = ({ onConfirm, onDismiss, max, tokenName = '' }) => {
+const WithdrawModal: React.FC<WithdrawModalProps> = ({ onConfirm, decimals, onDismiss, max, tokenName = '' }) => {
   const [val, setVal] = useState('')
   const [pendingTx, setPendingTx] = useState(false)
   const TranslateString = useI18n()
   const fullBalance = useMemo(() => {
-    return getFullDisplayBalance(max)
-  }, [max])
+    return getFullDisplayBalance(max, decimals, decimals)
+  }, [decimals, max])
 
   const handleChange = useCallback(
     (e: React.FormEvent<HTMLInputElement>) => {
@@ -51,7 +52,9 @@ const WithdrawModal: React.FC<WithdrawModalProps> = ({ onConfirm, onDismiss, max
             setPendingTx(true)
             await onConfirm(val)
             setPendingTx(false)
-            onDismiss()
+            if (onDismiss) {
+              onDismiss()
+            }
           }}
         >
           {pendingTx ? TranslateString(488, 'Pending Confirmation') : TranslateString(464, 'Confirm')}

@@ -1,62 +1,84 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import BigNumber from 'bignumber.js'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
-import { provider } from 'web3-core'
-import cakeABI from 'config/abi/cake.json'
-import { getContract } from 'utils/web3'
-import { getTokenBalance } from 'utils/erc20'
-import { getCakeAddress } from 'utils/addressHelpers'
-import useRefresh from './useRefresh'
+import useActiveWeb3React from './useActiveWeb3React'
+import useBlockNumber from './useBlockNumber'
+import { getBep20Contract, getHULKTokenContract } from '../utils/contractHelpers'
+import { getProviderOrSigner } from '../utils'
+
+
+export const getTokenBalance = async (
+  library: any,
+  tokenAddress: string,
+  userAddress: string,
+): Promise<string> => {
+  const contract = getBep20Contract(tokenAddress, getProviderOrSigner(library, userAddress))
+  try {
+    if (contract) {
+      const balance: string = await contract.balanceOf(userAddress)
+      return balance
+    } 
+      return '0'
+    
+  } catch (e) {
+    return '0'
+  }
+}
+
 
 const useTokenBalance = (tokenAddress: string) => {
   const [balance, setBalance] = useState(new BigNumber(0))
-  const { account, ethereum }: { account: string; ethereum: provider } = useWallet()
-  const { fastRefresh } = useRefresh()
+  const { account, library } = useActiveWeb3React()
+  const blockNumber = useBlockNumber()
 
   useEffect(() => {
-    const fetchBalance = async () => {
-      const res = await getTokenBalance(ethereum, tokenAddress, account)
-      setBalance(new BigNumber(res))
-    }
-
-    if (account && ethereum) {
+    if (account && library) {
+      const fetchBalance = async () => {
+        const res = await getTokenBalance(library, tokenAddress, account)
+        setBalance(new BigNumber(res))
+      }
       fetchBalance()
     }
-  }, [account, ethereum, tokenAddress, fastRefresh])
+
+  }, [account, tokenAddress, library, blockNumber])
 
   return balance
 }
 
 export const useTotalSupply = () => {
-  const { slowRefresh } = useRefresh()
+  const blockNumber = useBlockNumber()
   const [totalSupply, setTotalSupply] = useState<BigNumber>()
+  const {account, library} = useActiveWeb3React()
 
-  useEffect(() => {
-    async function fetchTotalSupply() {
-      const cakeContract = getContract(cakeABI, getCakeAddress())
-      const supply = await cakeContract.methods.totalSupply().call()
+  const fetchTotalSupply = useCallback( async () => {
+    if (account && library) {
+      const hulkContract = getHULKTokenContract(getProviderOrSigner(library, account))
+      const supply = await hulkContract.totalSupply()
       setTotalSupply(new BigNumber(supply))
     }
+  }, [account, library])
 
-    fetchTotalSupply()
-  }, [slowRefresh])
+  useEffect(() => {
+      fetchTotalSupply()
+  }, [blockNumber, fetchTotalSupply])
 
   return totalSupply
 }
 
 export const useBurnedBalance = (tokenAddress: string) => {
   const [balance, setBalance] = useState(new BigNumber(0))
-  const { slowRefresh } = useRefresh()
-
-  useEffect(() => {
-    const fetchBalance = async () => {
-      const cakeContract = getContract(cakeABI, getCakeAddress())
-      const bal = await cakeContract.methods.balanceOf('0x000000000000000000000000000000000000dEaD').call()
+  const blockNumber = useBlockNumber()
+  const {account, library} = useActiveWeb3React()
+  
+  const fetchBalance = useCallback( async () => {
+    if (account && library) {
+      const hulkContract = getHULKTokenContract(getProviderOrSigner(library, account))
+      const bal = await hulkContract.balanceOf('0x000000000000000000000000000000000000dEaD')
       setBalance(new BigNumber(bal))
     }
-
+  }, [account, library])
+  useEffect(() => {
     fetchBalance()
-  }, [tokenAddress, slowRefresh])
+  }, [tokenAddress, blockNumber, fetchBalance])
 
   return balance
 }

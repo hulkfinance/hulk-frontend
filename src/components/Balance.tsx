@@ -23,12 +23,14 @@ const Balance: React.FC<BalanceProps> = ({ value, fontSize, color, decimals, isD
   const previousValue = useRef(0)
 
   useEffect(() => {
-    previousValue.current = value
+    if (typeof value === 'number') {
+      previousValue.current = value
+    }
   }, [value])
 
   return (
     <StyledText bold color={color} fontSize={fontSize} isDisabled={isDisabled}>
-      <CountUp start={previousValue.current} end={value} decimals={decimals} duration={1} separator="," />
+      <CountUp start={previousValue.current} end={value || 0} decimals={decimals} duration={1} separator="," />
       {value && unit && <span>{unit}</span>}
     </StyledText>
   )

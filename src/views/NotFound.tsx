@@ -1,8 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Button, Heading, Text, LogoIcon } from '@hulkfinance/hulk-uikit'
-import Page from 'components/layout/Page'
-import useI18n from 'hooks/useI18n'
+import useI18n from '../hooks/useI18n'
+import Page from '../components/layout/Page'
 
 const StyledNotFound = styled.div`
   align-items: center;

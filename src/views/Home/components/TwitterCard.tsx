@@ -1,9 +1,9 @@
 import React from 'react'
 import { Card, CardBody, Heading } from '@hulkfinance/hulk-uikit'
-import useTheme from 'hooks/useTheme'
 import styled from 'styled-components'
 import { Timeline } from 'react-twitter-widgets'
-import useI18n from 'hooks/useI18n'
+import useI18n from '../../../hooks/useI18n'
+import useTheme from '../../../hooks/useTheme'
 
 const StyledTwitterCard = styled(Card)`
   margin-left: auto;

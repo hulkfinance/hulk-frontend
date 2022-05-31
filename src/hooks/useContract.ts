@@ -1,102 +1,87 @@
-import { useEffect, useState } from 'react'
-import { AbiItem } from 'web3-utils'
-import { ContractOptions } from 'web3-eth-contract'
-import useWeb3 from 'hooks/useWeb3'
+import { Contract } from '@ethersproject/contracts'
+import { useMemo } from 'react'
+import ERC20_BYTES32_ABI from '../config/abi/erc20_bytes32.json'
+import ERC20_ABI from '../config/abi/erc20.json'
+import MULTICALL_ABI from '../config/abi/Multicall.json'
+import {getContract, getProviderOrSigner} from '../utils'
 import {
-  getMasterChefAddress,
-  getCakeAddress,
-  getLotteryAddress,
-  getLotteryTicketAddress,
-  getHulkPreAddress, getHulkSwapAddress,
-} from 'utils/addressHelpers'
-import { poolsConfig } from 'config/constants'
-import { PoolCategory } from 'config/constants/types'
-import ifo from 'config/abi/ifo.json'
-import erc20 from 'config/abi/erc20.json'
-import rabbitmintingfarm from 'config/abi/rabbitmintingfarm.json'
-import pancakeRabbits from 'config/abi/pancakeRabbits.json'
-import lottery from 'config/abi/lottery.json'
-import lotteryTicket from 'config/abi/lotteryNft.json'
-import masterChef from 'config/abi/masterchef.json'
-import sousChef from 'config/abi/sousChef.json'
-import sousChefBnb from 'config/abi/sousChefBnb.json'
-import hulkpre from 'config/abi/hulkpre.json'
-import hulkswap from 'config/abi/hulkswap.json'
-import hulk from 'config/abi/hulk.json'
+  getHULKSwapAddress,
+  getHULKPreAddress, getHULKTokenAddress,
+  getMulticallAddress,
+} from '../utils/addressHelpers'
+import useActiveWeb3React from "./useActiveWeb3React";
+import { getBep20Contract, getLPContract, getMasterchefContract } from '../utils/contractHelpers'
+import hulkpre from '../config/abi/hulkpre.json'
+import hulkswap from '../config/abi/hulkswap.json'
+import hulk from '../config/abi/hulk.json'
 
-const useContract = (abi: AbiItem, address: string, contractOptions?: ContractOptions) => {
-  const web3 = useWeb3()
-  const [contract, setContract] = useState(new web3.eth.Contract(abi, address, contractOptions))
+// returns null on errors
+function useContract(address: string | undefined, ABI: any, withSignerIfPossible = true): Contract | null {
+  const { library, account } = useActiveWeb3React()
 
-  useEffect(() => {
-    setContract(new web3.eth.Contract(abi, address, contractOptions))
-  }, [abi, address, contractOptions, web3])
-
-  return contract
+  return useMemo(() => {
+    if (!address || !ABI || !library) return null
+    try {
+      return getContract(address, ABI, library, withSignerIfPossible && account ? account : undefined)
+    } catch (error) {
+      console.error('Failed to get contract', error)
+      return null
+    }
+  }, [address, ABI, library, withSignerIfPossible, account])
 }
 
-/**
- * Helper hooks to get specific contracts (by ABI)
- */
-
-export const useIfoContract = (address: string) => {
-  const ifoAbi = (ifo as unknown) as AbiItem
-  return useContract(ifoAbi, address)
+export function useTokenContract(tokenAddress?: string, withSignerIfPossible?: boolean): Contract | null {
+  return useContract(tokenAddress, ERC20_ABI, withSignerIfPossible)
 }
 
-export const useERC20 = (address: string) => {
-  const erc20Abi = (erc20 as unknown) as AbiItem
-  return useContract(erc20Abi, address)
+
+export function useBytes32TokenContract(tokenAddress?: string, withSignerIfPossible?: boolean): Contract | null {
+  return useContract(tokenAddress, ERC20_BYTES32_ABI, withSignerIfPossible)
 }
 
-export const useCake = () => {
-  return useERC20(getCakeAddress())
+
+export const useERC20 = (address: string, withSignerIfPossible = true) => {
+  const { library, account } = useActiveWeb3React()
+  return useMemo(
+      () => getBep20Contract(address, withSignerIfPossible && library ? getProviderOrSigner(library, account) : undefined),
+      [account, address, library, withSignerIfPossible],
+  )
 }
 
-export const useRabbitMintingFarm = (address: string) => {
-  const rabbitMintingFarmAbi = (rabbitmintingfarm as unknown) as AbiItem
-  return useContract(rabbitMintingFarmAbi, address)
+export const useMasterchef = (withSignerIfPossible = true) => {
+  const { library, account } = useActiveWeb3React()
+  return useMemo(
+      () => getMasterchefContract(withSignerIfPossible && library ? getProviderOrSigner(library, account) : undefined),
+      [library, withSignerIfPossible, account],
+  )
 }
 
-export const usePancakeRabbits = (address: string) => {
-  const pancakeRabbitsAbi = (pancakeRabbits as unknown) as AbiItem
-  return useContract(pancakeRabbitsAbi, address)
+export function useMulticallContract(): Contract | null {
+  return useContract(getMulticallAddress(), MULTICALL_ABI, false)
 }
 
-export const useLottery = () => {
-  const abi = (lottery as unknown) as AbiItem
-  return useContract(abi, getLotteryAddress())
-}
-
-export const useLotteryTicket = () => {
-  const abi = (lotteryTicket as unknown) as AbiItem
-  return useContract(abi, getLotteryTicketAddress())
-}
-
-export const useMasterchef = () => {
-  const abi = (masterChef as unknown) as AbiItem
-  return useContract(abi, getMasterChefAddress())
-}
 export const useHulkPreContract = () => {
-  const abi = (hulkpre as unknown) as AbiItem
-  return useContract(abi, getHulkPreAddress())
+  return useContract(getHULKPreAddress(), hulkpre)
 }
 
 export const useHulkSwapContract = () => {
-  const abi = (hulkswap as unknown) as AbiItem
-  return useContract(abi, getHulkSwapAddress())
+  return useContract(getHULKSwapAddress(), hulkswap)
 }
 
 export const useHulkContract = () => {
-  const abi = (hulk as unknown) as AbiItem
-  return useContract(abi, getCakeAddress())
+  return useContract(getHULKTokenAddress(), hulk)
 }
 
-export const useSousChef = (id) => {
-  const config = poolsConfig.find((pool) => pool.sousId === id)
-  const rawAbi = config.poolCategory === PoolCategory.BINANCE ? sousChefBnb : sousChef
-  const abi = (rawAbi as unknown) as AbiItem
-  return useContract(abi, config.contractAddress[process.env.REACT_APP_CHAIN_ID])
-}
+export const useLPContract = (address: string, withSignerIfPossible = true): Contract | null => {
+  const {library, account} = useActiveWeb3React()
+  return useMemo(
+    () => {
+      if (account) {
+        return  getLPContract(address, withSignerIfPossible && library ? getProviderOrSigner(library, account) : undefined)
+      }
+        return null
 
-export default useContract
+    },
+    [account, address, library, withSignerIfPossible],
+  )
+}

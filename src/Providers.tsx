@@ -1,41 +1,31 @@
 import React from 'react'
 import { ModalProvider } from '@hulkfinance/hulk-uikit'
-// import bsc, { UseWalletProvider } from '@binance-chain/bsc-use-wallet'
-import * as bsc from '@binance-chain/bsc-use-wallet'
 import { Provider } from 'react-redux'
-import getRpcUrl from 'utils/getRpcUrl'
-import { LanguageContextProvider } from 'contexts/Localisation/languageContext'
-import { ThemeContextProvider } from 'contexts/ThemeContext'
-import { BlockContextProvider } from 'contexts/BlockContext'
-import { RefreshContextProvider } from 'contexts/RefreshContext'
-import store from 'state'
+import { Web3ReactProvider } from '@web3-react/core'
 import ToastProvider from './contexts/ToastContext'
+import { getLibrary } from './utils/web3React'
+import { LanguageContextProvider } from './contexts/Localisation/languageContext'
+import store from './state'
+import { ThemeContextProvider } from './contexts/ThemeContext'
+import { LanguageProvider } from './contexts/Localisation'
 
 const Providers: React.FC = ({ children }) => {
-  const rpcUrl = getRpcUrl()
-  const chainId = parseInt(process.env.REACT_APP_CHAIN_ID)
+
   return (
-    <Provider store={store}>
-      <ToastProvider>
-        <ThemeContextProvider>
-          <LanguageContextProvider>
-            <bsc.UseWalletProvider
-              chainId={chainId}
-              connectors={{
-                walletconnect: { rpcUrl },
-                bsc,
-              }}
-            >
-              <BlockContextProvider>
-                <RefreshContextProvider>
-                  <ModalProvider>{children}</ModalProvider>
-                </RefreshContextProvider>
-              </BlockContextProvider>
-            </bsc.UseWalletProvider>
-          </LanguageContextProvider>
-        </ThemeContextProvider>
-      </ToastProvider>
-    </Provider>
+
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <Provider store={store}>
+        <ToastProvider>
+          <ThemeContextProvider>
+            <LanguageProvider>
+              <LanguageContextProvider>
+                <ModalProvider>{children}</ModalProvider>
+              </LanguageContextProvider>
+            </LanguageProvider>
+          </ThemeContextProvider>
+        </ToastProvider>
+      </Provider>
+    </Web3ReactProvider>
   )
 }
 

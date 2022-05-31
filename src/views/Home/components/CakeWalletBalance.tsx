@@ -1,15 +1,12 @@
 import React from 'react'
 import { Text } from '@hulkfinance/hulk-uikit'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
-import useTokenBalance from 'hooks/useTokenBalance'
-import useI18n from 'hooks/useI18n'
-import { getCakeAddress } from 'utils/addressHelpers'
-import { getBalanceNumber } from 'utils/formatBalance'
 import CardValue from './CardValue'
+import useI18n from '../../../hooks/useI18n'
+import useActiveWeb3React from '../../../hooks/useActiveWeb3React'
 
-const CakeWalletBalance = ({cakeBalance}) => {
+const CakeWalletBalance = ({cakeBalance}: any) => {
   const TranslateString = useI18n()
-  const { account } = useWallet()
+  const { account } = useActiveWeb3React()
 
   if (!account) {
     return (

@@ -1,15 +1,17 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
 import { Toast, toastTypes } from '@hulkfinance/hulk-uikit'
 import { fromWei, toWei } from 'web3-utils'
 import { BigNumber } from '@ethersproject/bignumber'
+import { MaxUint256 } from '@ethersproject/constants'
+import { TransactionResponse } from '@ethersproject/providers'
+import { Contract } from 'ethers'
+import useActiveWeb3React from './useActiveWeb3React'
 import { useERC20, useHulkPreContract } from './useContract'
-import useBlock from './useBlock'
-import { escapeRegExp, inputRegex, shortBalance } from '../utils'
-import useWeb3 from './useWeb3'
-import { getHulkPreAddress } from '../utils/addressHelpers'
-import { useIfoApprove } from './useApprove'
+import { escapeRegExp, getBscScanLink, inputRegex, shortBalance } from '../utils'
 import { ToastContext } from '../contexts/ToastContext'
+import useBlockNumber from './useBlockNumber'
+import { getHULKPreAddress, getHULKSwapAddress } from '../utils/addressHelpers'
+import { defaultChainId } from '../config'
 
 export enum ERound {
   RoundZero = 0,
@@ -32,13 +34,13 @@ export enum ECoins {
 export function useGetCurrentRound() {
   const hulkPreContract: any = useHulkPreContract()
   const [round, setRound] = useState<ERound>(ERound.RoundZero)
-  const block = useBlock()
+  const block = useBlockNumber()
 
   const getData = useCallback(() => {
     if (hulkPreContract) {
-      hulkPreContract.methods
-        .getCurrentRound().call()
-        .then((res) => {
+      hulkPreContract
+        .getCurrentRound()
+        .then((res:any) => {
           setRound(parseInt(res))
         })
         .catch((e: any) => {
@@ -56,18 +58,16 @@ export function useGetCurrentRound() {
 export default function usePresale() {
   const BN_0 = BigNumber.from('0')
   const { addToast } = useContext(ToastContext)
-  const { account } = useWallet()
+  const { account, library } = useActiveWeb3React()
   const busdToken = useERC20(ECoins.BUSD)
   const usdtToken = useERC20(ECoins.USDT)
-  const onBusdApprove = useIfoApprove(busdToken, getHulkPreAddress())
-  const onUsdtApprove = useIfoApprove(usdtToken, getHulkPreAddress())
   const hulkPreContract: any = useHulkPreContract()
   const round = useGetCurrentRound()
   const [availableTokens, setAvailableTokens] = useState<BigNumber>(BN_0)
   const [coin, setCoin] = useState<ECoins | string>(ECoins.Zero)
   const [balance, setBalance] = useState<BigNumber>(BN_0)
   const [allowance, setAllowance] = useState<{ busd: BigNumber, usdt: BigNumber }>({ busd: BN_0, usdt: BN_0 })
-  const block = useBlock()
+  const block = useBlockNumber()
   const [pending, setPending] = useState<boolean>(false)
   const [pendingApprove, setPendingApprove] = useState<boolean>(false)
   const [rate, setRate] = useState<BigNumber>(BN_0)
@@ -77,33 +77,32 @@ export default function usePresale() {
   const [tokenToCoins, setTokenToCoins] = useState<BigNumber>(BN_0)
   const [percent, setPercent] = useState<number>(0)
   const [price, setPrice] = useState<BigNumber>(BN_0)
-  const web3 = useWeb3()
 
   useEffect(() => {
-    if (account && web3 && coin === ECoins.Zero) {
-      web3.eth.getBalance(account)
-        .then((res) => {
+    if (account && library && coin === ECoins.Zero) {
+      library.getBalance(account)
+        .then((res:any) => {
           setBalance(BigNumber.from(res))
         })
         .catch((e: any) => {
           console.log(e)
         })
     }
-  }, [coin, account, web3])
+  }, [coin, account, library])
 
   const getData = useCallback(() => {
     if (hulkPreContract) {
-      hulkPreContract.methods
-        .getPrice().call()
-        .then((res) => {
+      hulkPreContract
+        .getPrice()
+        .then((res:any) => {
           setPrice(BigNumber.from(res))
         })
         .catch((e: any) => {
           console.log(e)
         })
-      hulkPreContract.methods
-        .getAvailable().call()
-        .then((res) => {
+      hulkPreContract
+        .getAvailable()
+        .then((res:any) => {
           setAvailableTokens(BigNumber.from(res))
         })
         .catch((e: any) => {
@@ -120,17 +119,17 @@ export default function usePresale() {
     if (coin !== ECoins.Zero && account) {
       const tokenContract = coin === ECoins.BUSD ? busdToken : usdtToken
       if (tokenContract) {
-        tokenContract.methods
-          .balanceOf(account).call()
-          .then((res) => {
+        tokenContract
+          .balanceOf(account) 
+          .then((res:any) => {
             setBalance(BigNumber.from(res))
           })
           .catch((e: any) => {
             console.log(e)
           })
-        tokenContract.methods
-          .allowance(account, getHulkPreAddress()).call()
-          .then((res) => {
+        tokenContract
+          .allowance(account, getHULKPreAddress())
+          .then((res:any) => {
             setAllowance(prevState => {
               return {
                 ...prevState,
@@ -151,18 +150,8 @@ export default function usePresale() {
   // 1_000_069_780_000
   useEffect(() => {
     if (hulkPreContract) {
-      // if (amountIn !== '') {
-      //   hulkPreContract.methods
-      //     .coinToTokens(toWei(amountIn), coin).call()
-      //     .then((res: string) => {
-      //       setCoinToTokens(BigNumber.from(res))
-      //     })
-      //     .catch((e: any) => {
-      //       console.log(e)
-      //     })
-      // }
-      hulkPreContract.methods
-        .getRate(coin).call()
+      hulkPreContract
+        .getRate(coin)
         .then((res: string) => {
           setRate(BigNumber.from(res))
         })
@@ -173,7 +162,7 @@ export default function usePresale() {
   }, [amountIn, coin, hulkPreContract])
 
 
-  const onChangeAmountIn = useCallback( async (value: string) => {
+  const onChangeAmountIn = useCallback(async (value: string) => {
     let nextUserInput = value.replace(/,/g, '.')
     const maxBalance = fromWei(balance.toString())
     if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
@@ -181,7 +170,7 @@ export default function usePresale() {
       setAmountIn(shortBalance(nextUserInput, 8))
       if (hulkPreContract && nextUserInput !== '') {
         try {
-          const tokens: string = await hulkPreContract.methods.coinToTokens(toWei(nextUserInput), coin).call()
+          const tokens: string = await hulkPreContract.coinToTokens(toWei(nextUserInput), coin)
           setCoinToTokens(BigNumber.from(tokens))
           setAmountOut(fromWei(tokens))
         } catch {
@@ -198,13 +187,13 @@ export default function usePresale() {
     }
   }, [balance, hulkPreContract, coin, BN_0])
 
-  const onChangeAmountOut = useCallback( async (value: string) => {
+  const onChangeAmountOut = useCallback(async (value: string) => {
     const nextUserInput = value.replace(/,/g, '.')
     if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
       setAmountOut(shortBalance(nextUserInput, 8))
       if (hulkPreContract && nextUserInput !== '') {
         try {
-          const coins: string = await hulkPreContract.methods.tokensToCoin(toWei(nextUserInput), coin).call()
+          const coins: string = await hulkPreContract.tokensToCoin(toWei(nextUserInput), coin)
           setTokenToCoins(BigNumber.from(coins))
           setAmountIn(fromWei(coins))
         } catch {
@@ -221,28 +210,6 @@ export default function usePresale() {
     }
   }, [BN_0, coin, hulkPreContract])
 
-  // useEffect(() => {
-  //   if (coinToTokens.isZero()) {
-  //     onChangeAmountOut('')
-  //   } else {
-  //     onChangeAmountOut(fromWei(coinToTokens.toString()))
-  //   }
-  // }, [coinToTokens, onChangeAmountOut])
-
-  // useEffect(() => {
-  //   if (!coinToTokens.isZero()) {
-  //     if (hulkPreContract) {
-  //       hulkPreContract.methods
-  //         .tokensToCoin(coinToTokens.toString(), coin).call()
-  //         .then((res: string) => {
-  //           setTokenToCoins(BigNumber.from(res))
-  //         })
-  //         .catch((e: any) => {
-  //           console.log(e)
-  //         })
-  //     }
-  //   }
-  // }, [coin, hulkPreContract, coinToTokens])
 
   const onBuyTokens = useCallback(async () => {
     if (hulkPreContract) {
@@ -256,14 +223,10 @@ export default function usePresale() {
       setPending(true)
       const valueBnb = toWei(amountIn.toString())
       const value = coinToTokens.toString()
-      const params: { from: string, value?: string } = { from: account }
+      const params: { from: any, value?: string } = { from: account }
       if (coin === ECoins.Zero) params.value = valueBnb
-      const trx = await hulkPreContract.methods
-        .buyTokens(value, coin)
-        .send({ ...params })
-        .on('transactionHash', (tx) => {
-          return tx.transactionHash
-        })
+      const trx = await hulkPreContract
+        .buyTokens(value, coin, { ...params })
         .catch((e: any) => {
           toast.title = 'Buy token: Failed'
           toast.type = toastTypes.DANGER
@@ -273,10 +236,10 @@ export default function usePresale() {
           setPending(false)
           getData()
         })
-      if (trx?.transactionHash) {
+      if (trx?.hash) {
         toast.action = {
           text: 'View transaction',
-          url: `https://testnet.bscscan.com/tx/${trx.transactionHash}`,
+          url: `https://testnet.bscscan.com/tx/${trx.hash}`,
         }
       }
       addToast(toast)
@@ -303,18 +266,50 @@ export default function usePresale() {
     setCoin(selectCoin)
   }, [])
 
-  const onApprove = useCallback(() => {
-    if (coin !== ECoins.Zero && account) {
+  const approve = useCallback(async (tokenContract: Contract | null) => {
+    if (account) {
+      const now = Date.now()
+      const toast: Toast = {
+        id: `id-${now}`,
+        title: `Approve token: Success`,
+        description: `Confirm Approve!`,
+        type: toastTypes.SUCCESS,
+      }
       setPendingApprove(true)
+      if (tokenContract && account) {
+        tokenContract.approve(getHULKPreAddress(), MaxUint256, { from: account })
+          .then((res: TransactionResponse) => {
+            if (res?.hash) {
+              toast.action = {
+                text: 'View transaction',
+                url: getBscScanLink(res.hash, 'transaction', defaultChainId),
+              }
+            }
+            addToast(toast)
+          })
+          .catch((error: any) => {
+            toast.title = 'Aprove token: Failed'
+            toast.type = toastTypes.DANGER
+            toast.description = error.data?.message || error.message || 'Something went wrong!'
+            addToast(toast)
+          })
+          .finally(() => setPendingApprove(false))
+      }
+      setPendingApprove(false)
+    }
+  }, [account, addToast])
+
+  const onApprove = useCallback( async () => {
+    if (coin !== ECoins.Zero && account) {
       const isBusd = coin === ECoins.BUSD
       if (isBusd) {
-        onBusdApprove().then(() => setPendingApprove(false))
+        await approve(busdToken)
       } else {
-        onUsdtApprove().then(() => setPendingApprove(false))
+        await approve(usdtToken)
       }
       getDataCoins()
     }
-  }, [getDataCoins, account, coin, onBusdApprove, onUsdtApprove])
+  }, [coin, account, getDataCoins, approve, busdToken, usdtToken])
 
   return useMemo(() => {
     return {
@@ -334,7 +329,7 @@ export default function usePresale() {
       percent,
       tokenToCoins,
       amountOut,
-      onChangeAmountOut
+      onChangeAmountOut,
     }
   }, [
     round,
@@ -353,6 +348,6 @@ export default function usePresale() {
     percent,
     tokenToCoins,
     amountOut,
-    onChangeAmountOut
+    onChangeAmountOut,
   ])
 }

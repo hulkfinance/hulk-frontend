@@ -41,7 +41,7 @@ const Message = styled.div`
 
 const SETTLE_TIME = 1620475681;
 
-const getTimeFormat = seconds => {
+const getTimeFormat = (seconds: number) => {
   const hour = Math.floor(seconds / 3600);
   const min = Math.floor((seconds - (hour * 3600)) / 60);
   const sec = seconds - (hour * 3600) - (min * 60);

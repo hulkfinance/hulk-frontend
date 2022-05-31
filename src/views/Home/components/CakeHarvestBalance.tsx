@@ -1,14 +1,12 @@
 import React from 'react'
 import { Text } from '@hulkfinance/hulk-uikit'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
-import BigNumber from 'bignumber.js'
-import useI18n from 'hooks/useI18n'
-import useAllEarnings from 'hooks/useAllEarnings'
 import CardValue from './CardValue'
+import useI18n from '../../../hooks/useI18n'
+import useActiveWeb3React from '../../../hooks/useActiveWeb3React'
 
-const CakeHarvestBalance = ({earningsSum}) => {
+const CakeHarvestBalance = ({earningsSum}: any) => {
   const TranslateString = useI18n()
-  const { account } = useWallet()
+  const { account } = useActiveWeb3React()
 
   if (!account) {
     return (

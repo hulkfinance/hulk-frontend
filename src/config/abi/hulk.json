@@ -3,8 +3,13 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "cOwner",
+                "name": "_pancakeRouterAddress",
                 "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_max_supply",
+                "type": "uint256"
             }
         ],
         "stateMutability": "nonpayable",
@@ -223,6 +228,19 @@
     {
         "inputs": [],
         "name": "MAX_LIQUIDITY_FEE",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "MAX_SUPPLY",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -468,6 +486,19 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "getOwner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -636,6 +667,24 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "mint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {

@@ -1,162 +1,208 @@
-/* eslint-disable no-param-reassign */
-import { createSlice } from '@reduxjs/toolkit'
-import poolsConfig from 'config/constants/pools'
-import { fetchPoolsBlockLimits, fetchPoolsTotalStatking } from './fetchPools'
+import type {
+  UnknownAsyncThunkFulfilledAction,
+  UnknownAsyncThunkPendingAction,
+  UnknownAsyncThunkRejectedAction,
+  // eslint-disable-next-line import/no-unresolved
+} from '@reduxjs/toolkit/dist/matchers'
+import { createAsyncThunk, createSlice, isAnyOf } from '@reduxjs/toolkit'
+import stringify from 'fast-json-stable-stringify'
+import farmsConfig from '../../config/constants/farms'
+import { isArchivedPid } from '../../utils/farmHelpers'
+import type { AppState } from '../index'
+import priceHelperLpsConfig from '../../config/constants/priceHelperLps'
+import fetchFarms from './fetchFarms'
+import getFarmsPrices from './getFarmsPrices'
 import {
-  fetchPoolsAllowance,
-  fetchUserBalances,
-  fetchUserStakeBalances,
-  fetchUserPendingRewards,
-  fetchRewardAddress
-} from './fetchPoolsUser'
-import { PoolsState, Pool } from '../types'
+  fetchFarmUserEarnings,
+  fetchFarmUserAllowances,
+  fetchFarmUserTokenBalances,
+  fetchFarmUserStakedBalances, fetchFarmUserCanHarvest,
+} from './fetchFarmUser'
+import { SerializedFarmsState, SerializedFarm } from '../types'
+import { fetchMasterChefFarmPoolLength, fetchMasterChefRegularHulkPerBlock } from './fetchMasterChefData'
+import { resetUserState } from '../global/actions'
 
-const initialState: PoolsState = { data: [...poolsConfig] }
+const noAccountFarmConfig = farmsConfig.map((farm: any) => ({
+  ...farm,
+  userData: {
+    allowance: '0',
+    tokenBalance: '0',
+    stakedBalance: '0',
+    earnings: '0',
+    canHarvest: false,
+    nextHarvestUntil: undefined
+  },
+}))
 
-export const PoolsSlice = createSlice({
-  name: 'Pools',
-  initialState,
-  reducers: {
-    setPoolsPublicData: (state, action) => {
-      const livePoolsData: Pool[] = action.payload
-      state.data = state.data.map((pool) => {
-        const livePoolData = livePoolsData.find((entry) => entry.sousId === pool.sousId)
-        return { ...pool, ...livePoolData }
-      })
-    },
-    setPoolsUserData: (state, action) => {
-      const userData = action.payload
-      state.data = state.data.map((pool) => {
-        const userPoolData = userData.find((entry) => entry.sousId === pool.sousId)
-        return { ...pool, userData: userPoolData }
-      })
-    },
-    updatePoolsUserData: (state, action) => {
-      const { field, value, sousId } = action.payload
-      const index = state.data.findIndex((p) => p.sousId === sousId)
-      state.data[index] = { ...state.data[index], userData: { ...state.data[index].userData, [field]: value } }
+const initialState: SerializedFarmsState = {
+  data: noAccountFarmConfig,
+  loadArchivedFarmsData: false,
+  userDataLoaded: false,
+  loadingKeys: {},
+}
+
+export const nonArchivedFarms = farmsConfig.filter(({ pid }: any) => !isArchivedPid(pid))
+
+// Async thunks
+export const fetchFarmsPublicDataAsync = createAsyncThunk<[SerializedFarm[], number, number], number[], { state: AppState }>(
+  'farms/fetchFarmsPublicDataAsync',
+  async (pids) => {
+    const poolLength = await fetchMasterChefFarmPoolLength()
+    const regularHulkPerBlock = await fetchMasterChefRegularHulkPerBlock()
+    const farmsToFetch = farmsConfig.filter((farmConfig: any) => pids.includes(farmConfig.pid))
+    const farmsCanFetch = farmsToFetch.filter((f: any) => poolLength.gt(f.pid))
+
+    // Add price helper farms
+    const farmsWithPriceHelpers = farmsCanFetch.concat([])
+
+    const farms = await fetchFarms(farmsWithPriceHelpers)
+
+    const farmsWithPrices = getFarmsPrices(farms)
+    // Filter out price helper LP config farms
+    const farmsWithoutHelperLps = farmsWithPrices.filter((farm: SerializedFarm) => {
+      return farm.pid || farm.pid === 0
+    })
+    return [farmsWithoutHelperLps, poolLength.toNumber(), regularHulkPerBlock.toNumber()]
+  },
+  {
+    condition: (arg, { getState }) => {
+      const { farms } = getState()
+      if (farms.loadingKeys[stringify({ type: fetchFarmsPublicDataAsync.typePrefix, arg })]) {
+        // console.debug('farms action is fetching, skipping here')
+        return false
+      }
+      return true
     },
   },
-})
+)
 
-export const LaunchPoolsSlice = createSlice({
-  name: 'LaunchPools',
-  initialState: { data: null },
-  reducers: {
-    setInitialState: (state, action) => {
-      const livePoolsData: Pool[] = action.payload
-      state.data = livePoolsData
-    },
-    setPoolsPublicData: (state, action) => {
-      const livePoolsData: Pool[] = action.payload
-      state.data = state.data.map((pool) => {
-        const livePoolData = livePoolsData.find((entry) => entry.sousId === pool.sousId)
-        return { ...pool, ...livePoolData }
-      })
-    },
-    setPoolsUserData: (state, action) => {
-      const userData = action.payload
-      state.data = state.data.map((pool) => {
-        const userPoolData = userData.find((entry) => entry.sousId === pool.sousId)
-        return { ...pool, userData: userPoolData }
-      })
-    },
-    updatePoolsUserData: (state, action) => {
-      const { field, value, sousId } = action.payload
-      const index = state.data.findIndex((p) => p.sousId === sousId)
-      state.data[index] = { ...state.data[index], userData: { ...state.data[index].userData, [field]: value } }
+interface FarmUserDataResponse {
+  pid: number
+  allowance: string
+  tokenBalance: string
+  stakedBalance: string
+  earnings: string
+  canHarvest: boolean,
+  nextHarvestUntil?: number,
+}
+
+export const fetchFarmUserDataAsync = createAsyncThunk<
+  FarmUserDataResponse[],
+  { account: string; pids: number[] },
+  {
+    state: AppState
+  }
+>(
+  'farms/fetchFarmUserDataAsync',
+  async ({ account, pids }) => {
+    const poolLength = await fetchMasterChefFarmPoolLength()
+    const farmsToFetch = farmsConfig.filter((farmConfig) => pids.includes(farmConfig.pid))
+    const farmsCanFetch = farmsToFetch.filter((f) => poolLength.gt(f.pid))
+    const userFarmAllowances = await fetchFarmUserAllowances(account, farmsCanFetch)
+    const userFarmTokenBalances = await fetchFarmUserTokenBalances(account, farmsCanFetch)
+    const userStakedBalances = await fetchFarmUserStakedBalances(account, farmsCanFetch)
+    const userFarmEarnings = await fetchFarmUserEarnings(account, farmsCanFetch)
+    const userFarmCanHarvest = await fetchFarmUserCanHarvest(account, farmsCanFetch)
+
+    return userFarmAllowances.map((farmAllowance, index) => {
+      return {
+        pid: farmsCanFetch[index].pid,
+        allowance: userFarmAllowances[index],
+        tokenBalance: userFarmTokenBalances[index],
+        stakedBalance: userStakedBalances[index].stakedBalance,
+        nextHarvestUntil: userStakedBalances[index].nextHarvestUntil * 1000,
+        earnings: userFarmEarnings[index],
+        canHarvest: userFarmCanHarvest[index],
+      }
+    })
+  },
+  {
+    condition: (arg, { getState }) => {
+      const { farms } = getState()
+      if (farms.loadingKeys[stringify({ type: fetchFarmUserDataAsync.typePrefix, arg })]) {
+        // console.debug('farms user action is fetching, skipping here')
+        return false
+      }
+      return true
     },
   },
-})
+)
 
-// Actions
-export const { setPoolsPublicData, setPoolsUserData, updatePoolsUserData } = PoolsSlice.actions
-export const { setInitialState } = LaunchPoolsSlice.actions
+type UnknownAsyncThunkFulfilledOrPendingAction =
+  | UnknownAsyncThunkFulfilledAction
+  | UnknownAsyncThunkPendingAction
+  | UnknownAsyncThunkRejectedAction
 
-export const fetchPoolsDataAsync  = () => async (dispatch) => {
-  const data = await fetchLaunchPools()
-  dispatch(setInitialState(data))
-}
-
-export const fetchLaunchPools = async () => {
-  // TODO: Aqui es donde llamamos a la API
-  return poolsConfig
-}
-
-export const fetchLaunchPoolsUserDataAsync = (account) => async (dispatch) => {
-  const launchPools = await fetchLaunchPools()
-  const allowances = await fetchPoolsAllowance(account)
-  const stakingTokenBalances = await fetchUserBalances(account)
-  const stakedBalances = await fetchUserStakeBalances(account)
-  const pendingRewards = await fetchUserPendingRewards(account)
-  const rewardAddress = await fetchRewardAddress(account)
-  console.log("fetchLaunchPoolsUserDataAsync");
-  const userData = launchPools.map((pool) => ({
-    sousId: pool.sousId,
-    allowance: allowances[pool.sousId],
-    stakingTokenBalance: stakingTokenBalances[pool.sousId],
-    stakedBalance: stakedBalances[pool.sousId],
-    pendingReward: pendingRewards[pool.sousId],
-    rewardAddress: rewardAddress[pool.sousId],
-  }))
-
-  dispatch(setPoolsUserData(userData))
-}
-
-// Thunks
-export const fetchPoolsPublicDataAsync = () => async (dispatch) => {
-  const blockLimits = await fetchPoolsBlockLimits()
-  const totalStakings = await fetchPoolsTotalStatking()
-
-  const liveData = poolsConfig.map((pool) => {
-    const blockLimit = blockLimits.find((entry) => entry.sousId === pool.sousId)
-    const totalStaking = totalStakings.find((entry) => entry.sousId === pool.sousId)
-    return {
-      ...blockLimit,
-      ...totalStaking,
-    }
+const serializeLoadingKey = (
+  action: UnknownAsyncThunkFulfilledOrPendingAction,
+  suffix: UnknownAsyncThunkFulfilledOrPendingAction['meta']['requestStatus'],
+) => {
+  const type = action.type.split(`/${suffix}`)[0]
+  return stringify({
+    arg: action.meta.arg,
+    type,
   })
-
-  dispatch(setPoolsPublicData(liveData))
 }
 
-export const fetchPoolsUserDataAsync = (account) => async (dispatch) => {
-  const allowances = await fetchPoolsAllowance(account)
-  const stakingTokenBalances = await fetchUserBalances(account)
-  const stakedBalances = await fetchUserStakeBalances(account)
-  const pendingRewards = await fetchUserPendingRewards(account)
-  const rewardAddress = await fetchRewardAddress(account)
+export const farmsSlice = createSlice({
+  name: 'Farms',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addCase(resetUserState, (state) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      state.data = state.data.map((farm) => {
+        return {
+          ...farm,
+          userData: {
+            allowance: '0',
+            tokenBalance: '0',
+            stakedBalance: '0',
+            earnings: '0',
+            canHarvest: false,
+            nextHarvestUntil: undefined
+          },
+        }
+      })
+      state.userDataLoaded = false
+    })
+    // Update farms with live data
+    builder.addCase(fetchFarmsPublicDataAsync.fulfilled, (state, action) => {
+      const [farmPayload, poolLength, regularHulkPerBlock] = action.payload
+      state.data = state.data.map((farm) => {
+        const liveFarmData = farmPayload.find((farmData) => farmData.pid === farm.pid)
+        return { ...farm, ...liveFarmData }
+      })
+      state.poolLength = poolLength
+      state.regularHulkPerBlock = regularHulkPerBlock
+    })
 
-  const userData = poolsConfig.map((pool) => ({
-    sousId: pool.sousId,
-    allowance: allowances[pool.sousId],
-    stakingTokenBalance: stakingTokenBalances[pool.sousId],
-    stakedBalance: stakedBalances[pool.sousId],
-    pendingReward: pendingRewards[pool.sousId],
-    rewardAddress: rewardAddress[pool.sousId]
-  }))
+    // Update farms with user data
+    builder.addCase(fetchFarmUserDataAsync.fulfilled, (state, action) => {
+      action.payload.forEach((userDataEl) => {
+        const { pid } = userDataEl
+        const index = state.data.findIndex((farm) => farm.pid === pid)
+        state.data[index] = { ...state.data[index], userData: userDataEl }
+      })
+      state.userDataLoaded = true
+    })
 
-  dispatch(setPoolsUserData(userData))
-}
+    builder.addMatcher(isAnyOf(fetchFarmUserDataAsync.pending, fetchFarmsPublicDataAsync.pending), (state, action) => {
+      state.loadingKeys[serializeLoadingKey(action, 'pending')] = true
+    })
+    builder.addMatcher(
+      isAnyOf(fetchFarmUserDataAsync.fulfilled, fetchFarmsPublicDataAsync.fulfilled),
+      (state, action) => {
+        state.loadingKeys[serializeLoadingKey(action, 'fulfilled')] = false
+      },
+    )
+    builder.addMatcher(
+      isAnyOf(fetchFarmsPublicDataAsync.rejected, fetchFarmUserDataAsync.rejected),
+      (state, action) => {
+        state.loadingKeys[serializeLoadingKey(action, 'rejected')] = false
+      },
+    )
+  },
+})
 
-export const updateUserAllowance = (sousId: string, account: string) => async (dispatch) => {
-  const allowances = await fetchPoolsAllowance(account)
-  dispatch(updatePoolsUserData({ sousId, field: 'allowance', value: allowances[sousId] }))
-}
-
-export const updateUserBalance = (sousId: string, account: string) => async (dispatch) => {
-  const tokenBalances = await fetchUserBalances(account)
-  dispatch(updatePoolsUserData({ sousId, field: 'stakingTokenBalance', value: tokenBalances[sousId] }))
-}
-
-export const updateUserStakedBalance = (sousId: string, account: string) => async (dispatch) => {
-  const stakedBalances = await fetchUserStakeBalances(account)
-  dispatch(updatePoolsUserData({ sousId, field: 'stakedBalance', value: stakedBalances[sousId] }))
-}
-
-export const updateUserPendingReward = (sousId: string, account: string) => async (dispatch) => {
-  const pendingRewards = await fetchUserPendingRewards(account)
-  dispatch(updatePoolsUserData({ sousId, field: 'pendingReward', value: pendingRewards[sousId] }))
-}
-
-export default PoolsSlice.reducer
+export default farmsSlice.reducer

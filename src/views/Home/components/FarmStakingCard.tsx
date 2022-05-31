@@ -1,24 +1,22 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import { Heading, Card, CardBody, Button } from '@hulkfinance/hulk-uikit'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
-import useI18n from 'hooks/useI18n'
 import BigNumber from 'bignumber.js/bignumber'
-import { useAllHarvest } from 'hooks/useHarvest'
-import useFarmsWithBalance from 'hooks/useFarmsWithBalance'
-import { provider as ProviderType } from 'web3-core'
-import UnlockButton from 'components/UnlockButton'
+import { ethers } from 'ethers'
 import CakeHarvestBalance from './CakeHarvestBalance'
 import CakeWalletBalance from './CakeWalletBalance'
-import useAllEarnings from '../../../hooks/useAllEarnings'
-import { usePriceMashBusd } from '../../../state/hooks'
-import { getCakeAddress } from '../../../utils/addressHelpers'
-import useTokenBalance from '../../../hooks/useTokenBalance'
 import { getBalanceNumber } from '../../../utils/formatBalance'
 import hulkLogo from '../../../assets/images/HulkLogo.svg'
 import metamaskLogo from '../../../assets/images/MetamaskIcon.svg'
 import HomeFarm from '../../../assets/images/HomeFarmImage.png'
-import useWeb3 from '../../../hooks/useWeb3'
+import useActiveWeb3React from '../../../hooks/useActiveWeb3React'
+import useI18n from '../../../hooks/useI18n'
+import { useTokenBalance } from '../../../state/wallet/hooks'
+import UnlockButton from '../../../components/UnlockButton'
+import { usePriceHULKBusd } from '../../../state/farms/hooks'
+import { getHULKTokenAddress } from '../../../utils/addressHelpers'
+import useFarmsWithBalance from '../hooks/useFarmsWithBalance'
+import { useAllHarvest } from '../../../hooks/Farms/useHarvestFarm'
 
 const StyledFarmStakingCard = styled(Card)`
   min-height: 376px;
@@ -103,20 +101,19 @@ const FarmedStakingCard = () => {
     return {
       symbol: 'HULK',
       decimals: 18,
-      address: getCakeAddress(),
+      address: getHULKTokenAddress(),
       // image: 'https://pbs.twimg.com/profile_images/802481220340908032/M_vde_oi_400x400.jpg',
     }
   }, [])
   const [pendingTx, setPendingTx] = useState(false)
-  const { account, ethereum }: { ethereum: ProviderType, account: any } = useWallet()
+  const { account, library } = useActiveWeb3React()
   const TranslateString = useI18n()
   const farmsWithBalance = useFarmsWithBalance()
-  const cakeBalance = getBalanceNumber(useTokenBalance(getCakeAddress()))
-  const hulkPrice = usePriceMashBusd().toNumber()
-  const earningsSum = farmsWithBalance.reduce((accum, farm) => {
-    return accum + new BigNumber(farm.balance).div(new BigNumber(10).pow(18)).toNumber()
-  }, 0)
-  const balancesWithValue = farmsWithBalance.filter((balanceType) => balanceType.balance.toNumber() > 0)
+  const hulkBalanceAmount = useTokenBalance(getHULKTokenAddress())?.toSignificant(2)
+  const hulkBalance = getBalanceNumber(new BigNumber(hulkBalanceAmount || 0))
+  const hulkPrice = usePriceHULKBusd().toNumber()
+  const {earningsSum} = farmsWithBalance
+  const balancesWithValue = farmsWithBalance.farmsWithStakedBalance
 
   const { onReward } = useAllHarvest(balancesWithValue.map((farmWithBalance) => farmWithBalance.pid))
 
@@ -130,10 +127,10 @@ const FarmedStakingCard = () => {
       setPendingTx(false)
     }
   }, [onReward])
-
+  const provider: any = (window as WindowChain).ethereum
   const onAddToken = useCallback(() => {
-    if (ethereum) {
-      ethereum.request({
+    if (library) {
+      provider.request({
         method: 'wallet_watchAsset',
         params: {
           type: 'ERC20',
@@ -141,7 +138,7 @@ const FarmedStakingCard = () => {
         },
       })
     }
-  }, [ethereum, token])
+  }, [library, provider, token])
 
   return (
     <StyledFarmStakingCard>
@@ -167,12 +164,12 @@ const FarmedStakingCard = () => {
         <Block>
           <Label>{TranslateString(544, 'HULK to Harvest')}</Label>
           <CakeHarvestBalance earningsSum={earningsSum}/>
-          <Label>~${(hulkPrice * earningsSum).toFixed(2)}</Label>
+          <Label>~${(hulkPrice * (earningsSum || 0)).toFixed(2)}</Label>
         </Block>
         <Block>
           <Label>{TranslateString(546, 'HULK in Wallet')}</Label>
-          <CakeWalletBalance cakeBalance={cakeBalance} />
-          <Label>~${(hulkPrice * cakeBalance).toFixed(2)}</Label>
+          <CakeWalletBalance cakeBalance={hulkBalance} />
+          <Label>~${(hulkPrice * hulkBalance).toFixed(2)}</Label>
         </Block>
         <Actions>
           {account ? (

@@ -1,12 +1,12 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Heading, Text, BaseLayout } from '@hulkfinance/hulk-uikit'
-import useI18n from 'hooks/useI18n'
-import Page from 'components/layout/Page'
 import Timeline from './components/Timeline'
 import Form from './components/Form'
 import { useGetCurrentRound } from '../../hooks/usePresale'
 import Swap from './components/Swap'
+import useI18n from '../../hooks/useI18n'
+import Page from '../../components/layout/Page'
 
 const Banner = styled.div`
   width: 100%;

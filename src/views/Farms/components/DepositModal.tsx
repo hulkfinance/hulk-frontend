@@ -1,10 +1,10 @@
 import BigNumber from 'bignumber.js'
 import React, { useCallback, useMemo, useState } from 'react'
 import { Button, Modal } from '@hulkfinance/hulk-uikit'
-import ModalActions from 'components/ModalActions'
-import TokenInput from 'components/TokenInput'
-import useI18n from 'hooks/useI18n'
-import { getFullDisplayBalance } from 'utils/formatBalance'
+import useI18n from '../../../hooks/useI18n'
+import TokenInput from '../../../components/TokenInput'
+import { getFullDisplayBalance } from '../../../utils/formatBalance'
+import ModalActions from '../../../components/ModalActions'
 
 interface DepositModalProps {
   max: BigNumber
@@ -12,15 +12,16 @@ interface DepositModalProps {
   onDismiss?: () => void
   tokenName?: string
   depositFeeBP?: number
+  decimals: number
 }
 
-const DepositModal: React.FC<DepositModalProps> = ({ max, onConfirm, onDismiss, tokenName = '' , depositFeeBP = 0}) => {
+const DepositModal: React.FC<DepositModalProps> = ({ max, decimals, onConfirm, onDismiss, tokenName = '' , depositFeeBP = 0}) => {
   const [val, setVal] = useState('')
   const [pendingTx, setPendingTx] = useState(false)
   const TranslateString = useI18n()
   const fullBalance = useMemo(() => {
-    return getFullDisplayBalance(max)
-  }, [max])
+    return getFullDisplayBalance(max, decimals, decimals)
+  }, [decimals, max])
 
   const handleChange = useCallback(
     (e: React.FormEvent<HTMLInputElement>) => {
@@ -53,7 +54,9 @@ const DepositModal: React.FC<DepositModalProps> = ({ max, onConfirm, onDismiss, 
             setPendingTx(true)
             await onConfirm(val)
             setPendingTx(false)
-            onDismiss()
+            if (onDismiss) {
+              onDismiss()
+            }
           }}
         >
           {pendingTx ? TranslateString(488, 'Pending Confirmation') : TranslateString(464, 'Confirm')}

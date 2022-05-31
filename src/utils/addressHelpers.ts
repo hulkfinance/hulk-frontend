@@ -1,28 +1,31 @@
-import addresses from 'config/constants/contracts'
+import { ChainId } from '@hulkfinance/hulk-swap-sdk'
+import addresses from '../config/constants/contracts'
+import { Address } from '../config/constants/types'
+import {defaultChainId} from "../config";
 
-const chainId = process.env.REACT_APP_CHAIN_ID
-
-export const getCakeAddress = () => {
-  return addresses.cake[chainId]
+export const getAddress = (address: Address): string => {
+  const chainId = defaultChainId
+  return address[chainId] ? address[chainId] : address[ChainId.MAINNET]
 }
+
 export const getMasterChefAddress = () => {
-  return addresses.masterChef[chainId]
+  return getAddress(addresses.masterChef)
 }
-export const getHulkPreAddress = () => {
-  return addresses.hulkpre[chainId]
-}
-export const getHulkSwapAddress = () => {
-  return addresses.hulkswap[chainId]
+export const getMasterChefV1Address = () => {
+  return getAddress(addresses.masterChefV1)
 }
 export const getMulticallAddress = () => {
-  return addresses.mulltiCall[chainId]
+  return getAddress(addresses.multiCall)
 }
-export const getWbnbAddress = () => {
-  return addresses.wbnb[chainId]
+export const getMulticallV2Address = () => {
+  return getAddress(addresses.multiCallV2)
 }
-export const getLotteryAddress = () => {
-  return addresses.lottery[chainId]
+export const getHULKSwapAddress = () => {
+  return getAddress(addresses.hulkswap)
 }
-export const getLotteryTicketAddress = () => {
-  return addresses.lotteryNFT[chainId]
+export const getHULKTokenAddress = () => {
+  return getAddress(addresses.hulk)
+}
+export const getHULKPreAddress = () => {
+  return getAddress(addresses.hulkpre)
 }

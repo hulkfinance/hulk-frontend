@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Button } from '@hulkfinance/hulk-uikit'
-import useI18n from 'hooks/useI18n'
+import useI18n from '../../hooks/useI18n'
 import Input, { InputProps } from './Input'
 
 interface Props extends InputProps {

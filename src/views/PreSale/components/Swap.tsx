@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
-import { useWallet } from '@binance-chain/bsc-use-wallet'
 import { fromWei } from 'web3-utils'
 import { Button, Card, CardBody, Flex, Heading, Input, Text } from '@hulkfinance/hulk-uikit'
 import hulk from '../../../assets/images/HulkLogo.svg'
 import UnlockButton from '../../../components/UnlockButton'
 import { shortBalance } from '../../../utils'
 import useHulkSwap from '../../../hooks/useHulkSwap'
+import useActiveWeb3React from '../../../hooks/useActiveWeb3React'
 
 
 const SwapStyledCard = styled(Card)`
@@ -140,7 +140,7 @@ const InputBlock = styled.div`
 `
 
 function Swap() {
-  const { account } = useWallet()
+  const { account } = useActiveWeb3React()
 
   const {
     allowance,

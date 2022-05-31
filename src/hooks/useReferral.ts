@@ -1,11 +1,11 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
-import useBlock from './useBlock'
 import { storageReferralKey } from '../config/constants'
+import useBlockNumber from './useBlockNumber'
 
 
 export default function useReferral() {
-    const [affiliateAddress, setAffiliateAddress] = useState<string>('');
-    const blockNumber = useBlock()
+    const [affiliateAddress, setAffiliateAddress] = useState<string>('0x000000000000000000000000000000000000dEaD');
+    const blockNumber = useBlockNumber()
 
     useEffect(() => {
         const checkedAddress = localStorage.getItem(storageReferralKey)
@@ -22,7 +22,7 @@ export default function useReferral() {
     }, [affiliateAddress])
 
     return useMemo(() => {
-        return {onSaveAffiliateAddress}
-    }, [onSaveAffiliateAddress])
+        return {onSaveAffiliateAddress, affiliateAddress}
+    }, [onSaveAffiliateAddress, affiliateAddress])
 
 }
