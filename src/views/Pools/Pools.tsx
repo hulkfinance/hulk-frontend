@@ -4,22 +4,22 @@ import BigNumber from 'bignumber.js'
 import { Image, Heading } from '@hulkfinance/hulk-uikit'
 import { ChainId } from '@hulkfinance/hulk-swap-sdk'
 import { orderBy } from 'lodash'
-import FarmTabButtons from './components/FarmTabButtons'
+import PoolTabButtons from './components/PoolTabButtons'
 import useAuth from '../../hooks/useAuth'
-import { useUserFarmStakedOnly, useUserFarmsViewMode } from '../../state/user/hooks'
+import { useUserPoolStakedOnly, useUserPoolsViewMode } from '../../state/user/hooks'
 import { TranslateString } from '../../utils/translateTextHelpers'
-import { getFarmApr } from '../../utils/apr'
+import { getFarmApr, getPoolApr } from '../../utils/apr'
 import { isArchivedPid } from '../../utils/farmHelpers'
 import useIntersectionObserver from '../../hooks/useIntersectionObserver'
-import { useFarms, usePollFarmsWithUserData, usePriceHULKBusd } from '../../state/farms/hooks'
+import { usePools, usePollPoolsWithUserData, usePriceHULKBusd } from '../../state/pools/hooks'
 import { latinise } from '../../utils/latinise'
-import { FarmsContext } from '../../contexts/FarmContext'
+import { PoolsContext } from '../../contexts/PoolContext'
 import useActiveWeb3React from '../../hooks/useActiveWeb3React'
 import FlexLayout from '../../components/layout/Flex'
 import Page from '../../components/layout/Page'
-import FarmList from './FarmList'
+import PoolList from './PoolList'
 
-export interface FarmsProps {
+export interface PoolsProps {
   tokenMode?: boolean
 }
 
@@ -56,125 +56,125 @@ const BannerHeading = styled(Heading)`
   line-height: 1.2;
 `
 
-const Farms: React.FC<FarmsProps> = () => {
+const Pools: React.FC<PoolsProps> = () => {
   const { login, logout } = useAuth()
-  const { data: farmsLP, userDataLoaded, poolLength, regularHulkPerBlock } = useFarms()
+  const { data: poolsLP, userDataLoaded, poolLength, regularHulkPerBlock } = usePools()
   const umPrice = usePriceHULKBusd()
   const [query, setQuery] = useState('')
-  const [viewMode, setViewMode] = useUserFarmsViewMode()
+  const [viewMode, setViewMode] = useUserPoolsViewMode()
   const { account } = useActiveWeb3React()
   const [sortOption, setSortOption] = useState('hot')
   const { observerRef, isIntersecting } = useIntersectionObserver()
-  const chosenFarmsLength = useRef(0)
+  const chosenPoolsLength = useRef(0)
   const [isActive, setIsActive] = useState<boolean>(true)
 
-  usePollFarmsWithUserData(false)
+  usePollPoolsWithUserData(false)
 
   // Users with no wallet connected should see 0 as Earned amount
   // Connected users should see loading indicator until first userData has loaded
   const userDataReady = !account || (!!account && userDataLoaded)
 
-  const [stakedOnly, setStakedOnly] = useUserFarmStakedOnly(isActive)
+  const [stakedOnly, setStakedOnly] = useUserPoolStakedOnly(isActive)
 
-  const activeFarms = farmsLP.filter(
-    (farm: any) =>
-      // farm.pid !== 0 && farm.multiplier !== '0X' && !isArchivedPid(farm.pid) && (!poolLength || poolLength > farm.pid),
-      farm.multiplier !== '0X' && !isArchivedPid(farm.pid) && (!poolLength || poolLength > farm.pid),
+  const activePools = poolsLP.filter(
+    (pool: any) =>
+      // pool.pid !== 0 && pool.multiplier !== '0X' && !isArchivedPid(pool.pid) && (!poolLength || poolLength > pool.pid),
+      pool.multiplier !== '0X' && !isArchivedPid(pool.pid) && (!poolLength || poolLength > pool.pid),
   )
 
-  const stakedOnlyFarms = activeFarms.filter(
-    (farm: any) => farm.userData && new BigNumber(farm.userData.stakedBalance).isGreaterThan(0),
+  const stakedOnlyPools = activePools.filter(
+    (pool: any) => pool.userData && new BigNumber(pool.userData.stakedBalance).isGreaterThan(0),
   )
 
-  const farmsList = useCallback(
-    (farmsToDisplay) => {
-      let farmsToDisplayWithAPR = farmsToDisplay.map((farm: any) => {
-        if (!farm.lpTotalInQuoteToken || !farm.quoteTokenPriceBusd) {
-          return farm
+  const poolsList = useCallback(
+    (poolsToDisplay) => {
+      let poolsToDisplayWithAPR = poolsToDisplay.map((pool: any) => {
+        if (!pool.lpTotalInQuoteToken || !pool.quoteTokenPriceBusd) {
+          return pool
         }
-        const totalLiquidity = new BigNumber(farm.lpTotalInQuoteToken).times(farm.quoteTokenPriceBusd)
+        const totalLiquidity = new BigNumber(pool.lpTotalInQuoteToken).times(pool.quoteTokenPriceBusd)
         const { hulkRewardsApr, lpRewardsApr } = isActive
           ? getFarmApr(
-            new BigNumber(farm.poolWeight),
+            new BigNumber(pool.poolWeight),
             umPrice,
             totalLiquidity,
-            farm.lpAddresses[ChainId.BSCTESTNET],
+            pool.lpAddresses[ChainId.BSCTESTNET],
             regularHulkPerBlock || 0,
           )
           : { hulkRewardsApr: 0, lpRewardsApr: 0 }
 
-        return { ...farm, apr: hulkRewardsApr, lpRewardsApr, liquidity: totalLiquidity }
+        return { ...pool, apr: hulkRewardsApr, lpRewardsApr, liquidity: totalLiquidity }
       })
 
       if (query) {
         const lowercaseQuery = latinise(query.toLowerCase())
-        farmsToDisplayWithAPR = farmsToDisplayWithAPR.filter((farm: any) => {
-          return latinise(farm.lpSymbol.toLowerCase()).includes(lowercaseQuery)
+        poolsToDisplayWithAPR = poolsToDisplayWithAPR.filter((pool: any) => {
+          return latinise(pool.lpSymbol.toLowerCase()).includes(lowercaseQuery)
         })
       }
-      return farmsToDisplayWithAPR
+      return poolsToDisplayWithAPR
     },
     [umPrice, query, isActive, regularHulkPerBlock],
   )
-  const [numberOfFarmsVisible, setNumberOfFarmsVisible] = useState(NUMBER_OF_FARMS_VISIBLE)
+  const [numberOfPoolsVisible, setNumberOfPoolsVisible] = useState(NUMBER_OF_FARMS_VISIBLE)
 
-  const chosenFarmsMemoized = useMemo(() => {
-    let chosenFarms = []
+  const chosenPoolsMemoized = useMemo(() => {
+    let chosenPools = []
 
-    const sortFarms = (farms: any) => {
+    const sortPools = (pools: any) => {
       switch (sortOption) {
         case 'apr':
-          return orderBy(farms, (farm: any) => farm.apr + farm.lpRewardsApr, 'desc')
+          return orderBy(pools, (pool: any) => pool.apr + pool.lpRewardsApr, 'desc')
         case 'multiplier':
           return orderBy(
-            farms,
-            (farm: any) => (farm.multiplier ? Number(farm.multiplier.slice(0, -1)) : 0),
+            pools,
+            (pool: any) => (pool.multiplier ? Number(pool.multiplier.slice(0, -1)) : 0),
             'desc',
           )
         case 'earned':
           return orderBy(
-            farms,
-            (farm: any) => (farm.userData ? Number(farm.userData.earnings) : 0),
+            pools,
+            (pool: any) => (pool.userData ? Number(pool.userData.earnings) : 0),
             'desc',
           )
         case 'liquidity':
-          return orderBy(farms, (farm: any) => Number(farm.liquidity), 'desc')
+          return orderBy(pools, (pool: any) => Number(pool.liquidity), 'desc')
         case 'latest':
-          return orderBy(farms, (farm: any) => Number(farm.pid), 'desc')
+          return orderBy(pools, (pool: any) => Number(pool.pid), 'desc')
         default:
-          return farms
+          return pools
       }
     }
 
     if (isActive) {
-      chosenFarms = stakedOnly ? farmsList(stakedOnlyFarms) : farmsList(activeFarms)
+      chosenPools = stakedOnly ? poolsList(stakedOnlyPools) : poolsList(activePools)
     }
-    return sortFarms(chosenFarms).slice(0, numberOfFarmsVisible)
+    return sortPools(chosenPools).slice(0, numberOfPoolsVisible)
   }, [
     sortOption,
-    activeFarms,
-    farmsList,
+    activePools,
+    poolsList,
     isActive,
     stakedOnly,
-    stakedOnlyFarms,
-    numberOfFarmsVisible,
+    stakedOnlyPools,
+    numberOfPoolsVisible,
   ])
 
-  chosenFarmsLength.current = chosenFarmsMemoized.length
+  chosenPoolsLength.current = chosenPoolsMemoized.length
 
   useEffect(() => {
     if (isIntersecting) {
-      setNumberOfFarmsVisible((farmsCurrentlyVisible) => {
-        if (farmsCurrentlyVisible <= chosenFarmsLength.current) {
-          return farmsCurrentlyVisible + NUMBER_OF_FARMS_VISIBLE
+      setNumberOfPoolsVisible((poolsCurrentlyVisible) => {
+        if (poolsCurrentlyVisible <= chosenPoolsLength.current) {
+          return poolsCurrentlyVisible + NUMBER_OF_FARMS_VISIBLE
         }
-        return farmsCurrentlyVisible
+        return poolsCurrentlyVisible
       })
     }
   }, [isIntersecting])
 
   return (
-    <FarmsContext.Provider value={{ chosenFarmsMemoized }}>
+    <PoolsContext.Provider value={{ chosenPoolsMemoized }}>
       <Banner>
         <BannerHeading as='h1' mb={0} style={{ textAlign: 'center' }}>
           {TranslateString(10002, 'Stake tokens to earn HULK ')}
@@ -184,12 +184,12 @@ const Farms: React.FC<FarmsProps> = () => {
         </Heading>
       </Banner>
       <Page>
-        <FarmTabButtons stakedOnly={stakedOnly} setStakedOnly={setStakedOnly} isActive={isActive}
+        <PoolTabButtons stakedOnly={stakedOnly} setStakedOnly={setStakedOnly} isActive={isActive}
                         setIsActive={setIsActive} />
-        <FarmList />
+        <PoolList />
       </Page>
-    </FarmsContext.Provider>
+    </PoolsContext.Provider>
   )
 }
 
-export default Farms
+export default Pools

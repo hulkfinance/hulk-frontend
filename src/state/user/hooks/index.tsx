@@ -23,9 +23,6 @@ import {
   updateUserSlippageTolerance,
   updateGasPrice,
   addWatchlistToken,
-  addWatchlistPool,
-  updateUserPoolStakedOnly,
-  updateUserPoolsViewMode,
   ViewMode,
   updateUserFarmsViewMode,
   updateUserPredictionChartDisclaimerShow,
@@ -38,7 +35,7 @@ import {
   ChartViewMode,
   setChartViewMode,
   setSubgraphHealthIndicatorDisplayed,
-  updateUserLimitOrderAcceptedWarning,
+  updateUserLimitOrderAcceptedWarning, updateUserPoolsViewMode, PoolStakedOnly, updateUserPoolStakedOnly,
 } from '../actions'
 import { deserializeToken, serializeToken } from './helpers'
 import { GAS_PRICE_GWEI } from '../../types'
@@ -195,37 +192,6 @@ export function useUserFarmStakedOnly(isActive: boolean): [boolean, (stakedOnly:
   ]
 }
 
-export function useUserPoolStakedOnly(): [boolean, (stakedOnly: boolean) => void] {
-  const dispatch = useDispatch<AppDispatch>()
-  const userPoolStakedOnly = useSelector<AppState, AppState['user']['userPoolStakedOnly']>((state) => {
-    return state.user.userPoolStakedOnly
-  })
-
-  const setUserPoolStakedOnly = useCallback(
-    (stakedOnly: boolean) => {
-      dispatch(updateUserPoolStakedOnly({ userPoolStakedOnly: stakedOnly }))
-    },
-    [dispatch],
-  )
-
-  return [userPoolStakedOnly, setUserPoolStakedOnly]
-}
-
-export function useUserPoolsViewMode(): [ViewMode, (viewMode: ViewMode) => void] {
-  const dispatch = useDispatch<AppDispatch>()
-  const userPoolsViewMode = useSelector<AppState, AppState['user']['userPoolsViewMode']>((state) => {
-    return state.user.userPoolsViewMode
-  })
-
-  const setUserPoolsViewMode = useCallback(
-    (viewMode: ViewMode) => {
-      dispatch(updateUserPoolsViewMode({ userPoolsViewMode: viewMode }))
-    },
-    [dispatch],
-  )
-
-  return [userPoolsViewMode, setUserPoolsViewMode]
-}
 
 export function useUserFarmsViewMode(): [ViewMode, (viewMode: ViewMode) => void] {
   const dispatch = useDispatch<AppDispatch>()
@@ -241,6 +207,43 @@ export function useUserFarmsViewMode(): [ViewMode, (viewMode: ViewMode) => void]
   )
 
   return [userFarmsViewMode, setUserFarmsViewMode]
+}
+
+export function useUserPoolStakedOnly(isActive: boolean): [boolean, (stakedOnly: boolean) => void] {
+  const dispatch = useDispatch<AppDispatch>()
+  const userPoolStakedOnly = useSelector<AppState, AppState['user']['userPoolStakedOnly']>((state) => {
+    return state.user.userPoolStakedOnly
+  })
+
+  const setUserPoolStakedOnly = useCallback(
+    (stakedOnly: boolean) => {
+      const farmStakedOnly = stakedOnly ? PoolStakedOnly.TRUE : PoolStakedOnly.FALSE
+      dispatch(updateUserPoolStakedOnly({ userPoolStakedOnly: farmStakedOnly }))
+    },
+    [dispatch],
+  )
+
+  return [
+    userPoolStakedOnly === PoolStakedOnly.ON_FINISHED ? !isActive : userPoolStakedOnly === PoolStakedOnly.TRUE,
+    setUserPoolStakedOnly,
+  ]
+}
+
+
+export function useUserPoolsViewMode(): [ViewMode, (viewMode: ViewMode) => void] {
+  const dispatch = useDispatch<AppDispatch>()
+  const userPoolsViewMode = useSelector<AppState, AppState['user']['userPoolsViewMode']>((state) => {
+    return state.user.userPoolsViewMode
+  })
+
+  const setUserPoolsViewMode = useCallback(
+    (viewMode: ViewMode) => {
+      dispatch(updateUserPoolsViewMode({ userPoolsViewMode: viewMode }))
+    },
+    [dispatch],
+  )
+
+  return [userPoolsViewMode, setUserPoolsViewMode]
 }
 
 export function useUserPredictionAcceptedRisk(): [boolean, (acceptedRisk: boolean) => void] {
@@ -517,16 +520,4 @@ export const useWatchlistTokens = (): [string[], (address: string) => void] => {
     [dispatch],
   )
   return [savedTokens, updatedSavedTokens]
-}
-
-export const useWatchlistPools = (): [string[], (address: string) => void] => {
-  const dispatch = useDispatch<AppDispatch>()
-  const savedPools = useSelector((state: AppState) => state.user.watchlistPools) ?? []
-  const updateSavedPools = useCallback(
-    (address: string) => {
-      dispatch(addWatchlistPool({ address }))
-    },
-    [dispatch],
-  )
-  return [savedPools, updateSavedPools]
 }

@@ -54,7 +54,7 @@ export default function useCatchTxError(): CatchTxErrorReturn {
         addToast(toast)
       } else {
         addToast(toast)
-        console.log('Please try again. Confirm the transaction and make sure you are paying enough gas!')
+        // console.log('Please try again. Confirm the transaction and make sure you are paying enough gas!')
       }
     },
     [addToast],
@@ -78,6 +78,7 @@ export default function useCatchTxError(): CatchTxErrorReturn {
          * wait for useSWRMutation finished, so we could apply SWR in case manually trigger tx call
          */
         tx = await callTx()
+        console.log(tx, callTx)
 
         if (tx) {
           toast.action = {

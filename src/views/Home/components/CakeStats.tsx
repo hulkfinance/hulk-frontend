@@ -47,7 +47,7 @@ const CakeStats = () => {
   const burnedBalance = useBurnedBalance(getHULKTokenAddress())
   const eggPrice = usePriceHULKBusd()
   const circSupply = totalSupply ? totalSupply.minus(burnedBalance) : new BigNumber(0)
-  const cakeSupply = getBalanceNumber(circSupply)
+  const hulkSupply = getBalanceNumber(circSupply)
   const marketCap = eggPrice.times(circSupply)
 
   return (
@@ -62,7 +62,7 @@ const CakeStats = () => {
         </Row>
         <Row>
           <TextItem>{TranslateString(536, 'Total Supply')}</TextItem>
-          {cakeSupply && <CardValue fontSize='20px' value={cakeSupply} decimals={0} />}
+          {hulkSupply && <CardValue fontSize='20px' value={hulkSupply} decimals={0} />}
         </Row>
         <Row>
           <TextItem>{TranslateString(538, 'Total Burned')}</TextItem>

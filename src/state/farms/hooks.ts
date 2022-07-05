@@ -7,7 +7,7 @@ import { farmsConfig } from '../../config/constants'
 import { useFastRefreshEffect, useSlowRefreshEffect } from '../../hooks/useRefreshEffect'
 import { useAppDispatch } from '../index'
 import { fetchFarmsPublicDataAsync, fetchFarmUserDataAsync, nonArchivedFarms } from '.'
-import { DeserializedFarm, DeserializedFarmsState, DeserializedFarmUserData, State } from '../types'
+import { DeserializedFarm, DeserializedFarmsState, DeserializedFarmUserData, SerializedFarm, State } from '../types'
 import {
   farmSelector,
   farmFromLpSymbolSelector,
@@ -97,13 +97,23 @@ export const usePriceHULKBusd = (): BigNumber => {
 
 
 export const usePriceBnbBusd = (): BigNumber => {
-  const pid = 2 // BUSD-BNB LP
+  const pid = 0 // BUSD-BNB LP
   const farm = useFarmFromPid(pid)
   if (farm) {
     return farm.tokenPriceVsQuote ? new BigNumber(farm.tokenPriceVsQuote) : BIG_ZERO
   }
   return BIG_ZERO
 }
+
+export const usePriceHulkBnb = (): BigNumber => {
+  const pid = 3 // HULK-BNB LP
+  const farm = useFarmFromPid(pid)
+  if (farm) {
+    return farm.tokenPriceVsQuote ? new BigNumber(farm.tokenPriceVsQuote) : BIG_ZERO
+  }
+  return BIG_ZERO
+}
+
 export const useTotalValue = (): BigNumber => {
   const farms = useFarms();
   const bnbPrice = usePriceBnbBusd();

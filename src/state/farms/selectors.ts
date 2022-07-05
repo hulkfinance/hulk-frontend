@@ -17,12 +17,13 @@ const deserializeFarmUserData = (farm: SerializedFarm): DeserializedFarmUserData
 }
 
 const deserializeFarm = (farm: SerializedFarm): DeserializedFarm => {
-    const {lpAddresses, lpSymbol, pid, dual, multiplier, isCommunity, quoteTokenPriceBusd, tokenPriceBusd, defaultApr, depositFeeBP} = farm
+    const {lpAddresses, lpSymbol, pid, dual, multiplier, isCommunity, quoteTokenPriceBusd, tokenPriceBusd, defaultApr, depositFeeBP, v1pid} = farm
 
     return {
         lpAddresses,
         defaultApr,
         depositFeeBP,
+        v1pid,
         lpSymbol,
         pid,
         dual,
@@ -42,7 +43,8 @@ const deserializeFarm = (farm: SerializedFarm): DeserializedFarm => {
     }
 }
 
-const selectHulkFarm = (state: State) => state.farms.data.find((f) => f.pid === 2)
+const selectHulkFarm = (state: State) => state.farms.data.find((f) => f.pid === 1)
+
 const selectFarmByKey = (key: string, value: string | number) => (state: State) =>
 // @ts-ignore
     state.farms.data.find((f) => f[key] === value)
@@ -79,8 +81,8 @@ export const makeUserFarmFromPidSelector = (pid: number) =>
 export const priceHulkFromPidSelector = createSelector([selectHulkFarm], (hulkBnbFarm) => {
     if (hulkBnbFarm) {
         const deserializedHulkBnbFarm = deserializeFarm(hulkBnbFarm)
-        const umPriceBusdAsString = deserializedHulkBnbFarm.tokenPriceBusd
-        return new BigNumber(umPriceBusdAsString || '')
+        const hulkPriceBusdAsString = deserializedHulkBnbFarm.tokenPriceBusd
+        return new BigNumber(hulkPriceBusdAsString || '')
     }
 })
 

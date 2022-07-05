@@ -3,13 +3,13 @@ import erc20ABI from '../../config/abi/erc20.json'
 import { getAddress, getMasterChefAddress } from '../../utils/addressHelpers'
 import masterchefABI from "../../config/abi/masterchef.json"
 import multicall from '../../utils/multicall'
-import { SerializedFarmConfig } from '../../config/constants/types'
+import { SerializedPoolConfig } from '../../config/constants/types'
 
-export const fetchFarmUserAllowances = async (account: string, farmsToFetch: SerializedFarmConfig[]) => {
+export const fetchPoolUserAllowances = async (account: string, poolsToFetch: SerializedPoolConfig[]) => {
   const masterChefAddress = getMasterChefAddress()
 
-  const calls = farmsToFetch.map((farm) => {
-    const lpContractAddress = getAddress(farm.lpAddresses)
+  const calls = poolsToFetch.map((pool) => {
+    const lpContractAddress = getAddress(pool.lpAddresses)
     return { address: lpContractAddress, name: 'allowance', params: [account, masterChefAddress] }
   })
 
@@ -20,9 +20,9 @@ export const fetchFarmUserAllowances = async (account: string, farmsToFetch: Ser
   return parsedLpAllowances
 }
 
-export const fetchFarmUserTokenBalances = async (account: string, farmsToFetch: SerializedFarmConfig[]) => {
-  const calls = farmsToFetch.map((farm) => {
-    const lpContractAddress = getAddress(farm.lpAddresses)
+export const fetchPoolUserTokenBalances = async (account: string, poolsToFetch: SerializedPoolConfig[]) => {
+  const calls = poolsToFetch.map((pool) => {
+    const lpContractAddress = getAddress(pool.lpAddresses)
     return {
       address: lpContractAddress,
       name: 'balanceOf',
@@ -37,14 +37,14 @@ export const fetchFarmUserTokenBalances = async (account: string, farmsToFetch: 
   return parsedTokenBalances
 }
 
-export const fetchFarmUserStakedBalances = async (account: string, farmsToFetch: SerializedFarmConfig[]) => {
+export const fetchPoolUserStakedBalances = async (account: string, poolsToFetch: SerializedPoolConfig[]) => {
   const masterChefAddress = getMasterChefAddress()
 
-  const calls = farmsToFetch.map((farm) => {
+  const calls = poolsToFetch.map((pool) => {
     return {
       address: masterChefAddress,
       name: 'userInfo',
-      params: [farm.pid, account],
+      params: [pool.pid, account],
     }
   })
 
@@ -58,14 +58,14 @@ export const fetchFarmUserStakedBalances = async (account: string, farmsToFetch:
   return parsedStakedBalances
 }
 
-export const fetchFarmUserEarnings = async (account: string, farmsToFetch: SerializedFarmConfig[]) => {
+export const fetchPoolUserEarnings = async (account: string, poolsToFetch: SerializedPoolConfig[]) => {
   const masterChefAddress = getMasterChefAddress()
 
-  const calls = farmsToFetch.map((farm) => {
+  const calls = poolsToFetch.map((pool) => {
     return {
       address: masterChefAddress,
       name: 'pendingHULK',
-      params: [farm.pid, account],
+      params: [pool.pid, account],
     }
   })
 
@@ -76,14 +76,14 @@ export const fetchFarmUserEarnings = async (account: string, farmsToFetch: Seria
   return parsedEarnings
 }
 
-export const fetchFarmUserCanHarvest = async (account: string, farmsToFetch: SerializedFarmConfig[]) => {
+export const fetchPoolUserCanHarvest = async (account: string, poolsToFetch: SerializedPoolConfig[]) => {
   const masterChefAddress = getMasterChefAddress()
 
-  const calls = farmsToFetch.map((farm) => {
+  const calls = poolsToFetch.map((pool) => {
     return {
       address: masterChefAddress,
       name: 'canHarvest',
-      params: [farm.pid, account],
+      params: [pool.pid, account],
     }
   })
 

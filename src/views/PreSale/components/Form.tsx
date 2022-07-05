@@ -95,22 +95,6 @@ const Progress = styled.div<{ width: number }>`
     text-transform: capitalize;
   }
 `
-const ReferralButton = styled(Button)`
-  color: ${({ theme }) => theme.colors.primary};
-  background-color: transparent;
-  transition: all .25s ease-out;
-  font-size: 20px;
-  padding-left: 0;
-
-  &:hover:not(:disabled):not(.button--disabled):not(:active) {
-    background-color: transparent;
-    text-decoration: underline;
-  }
-
-  img {
-    margin-left: 8px;
-  }
-`
 
 const FormBlock = styled.div`
   display: flex;

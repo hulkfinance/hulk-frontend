@@ -120,55 +120,52 @@ export interface DeserializedFarm extends DeserializedFarmConfig {
   poolWeight?: BigNumber
   userData?: DeserializedFarmUserData
 }
+interface SerializedPoolUserData {
+  allowance: string
+  tokenBalance: string
+  stakedBalance: string
+  earnings: string,
+  canHarvest: boolean,
+  nextHarvestUntil?: number,
+}
+
+export interface DeserializedPoolUserData {
+  allowance: BigNumber
+  tokenBalance: BigNumber
+  stakedBalance: BigNumber
+  earnings: BigNumber
+  canHarvest: boolean,
+  nextHarvestUntil?: number,
+}
+
+export interface SerializedPool extends SerializedPoolConfig {
+  tokenPriceBusd?: string
+  quoteTokenPriceBusd?: string
+  tokenAmountTotal?: SerializedBigNumber
+  quoteTokenAmountTotal?: SerializedBigNumber
+  lpTotalInQuoteToken?: SerializedBigNumber
+  lpTotalSupply?: SerializedBigNumber
+  tokenPriceVsQuote?: SerializedBigNumber
+  poolWeight?: SerializedBigNumber
+  userData?: SerializedPoolUserData
+}
+
+export interface DeserializedPool extends DeserializedPoolConfig {
+  tokenPriceBusd?: string
+  quoteTokenPriceBusd?: string
+  tokenAmountTotal?: BigNumber
+  quoteTokenAmountTotal?: BigNumber
+  lpTotalInQuoteToken?: BigNumber
+  lpTotalSupply?: BigNumber
+  tokenPriceVsQuote?: BigNumber
+  poolWeight?: BigNumber
+  userData?: DeserializedPoolUserData
+}
 
 export enum VaultKey {
   HulkVaultV1 = '.umVaultV1',
   HulkVault = '.umVault',
   IfoPool = 'ifoPool',
-}
-
-interface CorePoolProps {
-  startBlock?: number
-  endBlock?: number
-  apr?: number
-  rawApr?: number
-  stakingTokenPrice?: number
-  earningTokenPrice?: number
-  vaultKey?: VaultKey
-}
-
-export interface DeserializedPool extends DeserializedPoolConfig, CorePoolProps {
-  totalStaked?: BigNumber
-  stakingLimit?: BigNumber
-  stakingLimitEndBlock?: number
-  profileRequirement?: {
-    required: boolean
-    thresholdPoints: BigNumber
-  }
-  userData?: {
-    allowance: BigNumber
-    stakingTokenBalance: BigNumber
-    stakedBalance: BigNumber
-    nextHarvestUntil?: number,
-    canHarvest: boolean,
-    pendingReward: BigNumber
-  }
-}
-
-export interface SerializedPool extends SerializedPoolConfig, CorePoolProps {
-  totalStaked?: SerializedBigNumber
-  stakingLimit?: SerializedBigNumber
-  numberBlocksForUserLimit?: number
-  profileRequirement?: {
-    required: boolean
-    thresholdPoints: SerializedBigNumber
-  }
-  userData?: {
-    allowance: SerializedBigNumber
-    stakingTokenBalance: SerializedBigNumber
-    stakedBalance: SerializedBigNumber
-    pendingReward: SerializedBigNumber
-  }
 }
 
 export interface Profile {
@@ -198,6 +195,22 @@ export interface SerializedFarmsState {
 export interface DeserializedFarmsState {
   data: DeserializedFarm[]
   loadArchivedFarmsData: boolean
+  userDataLoaded: boolean
+  poolLength?: number
+  regularHulkPerBlock?: number
+}
+export interface SerializedPoolsState {
+  data: SerializedPool[]
+  loadArchivedPoolsData: boolean
+  userDataLoaded: boolean
+  loadingKeys: Record<string, boolean>
+  poolLength?: number
+  regularHulkPerBlock?: number
+}
+
+export interface DeserializedPoolsState {
+  data: DeserializedPool[]
+  loadArchivedPoolsData: boolean
   userDataLoaded: boolean
   poolLength?: number
   regularHulkPerBlock?: number
@@ -276,12 +289,6 @@ export interface SerializedHulkVault {
   totalHulkInVault?: SerializedBigNumber
   fees?: SerializedVaultFees
   userData?: SerializedLockedVaultUser
-}
-
-export interface PoolsState {
-  data: SerializedPool[]
-  umVault: SerializedHulkVault
-  userDataLoaded: boolean
 }
 
 export type TeamsById = {
@@ -633,13 +640,18 @@ export interface UserRound {
 export interface State {
   farms: SerializedFarmsState
   farmsV1: SerializedFarmsState
-  pools: PoolsState
+  pools: SerializedPoolsState
   // predictions: PredictionsState
   // lottery: LotteryState
   // nftMarket: NftMarketState
 }
 
 export interface FarmWithStakedValue extends DeserializedFarm {
+  apr?: number
+  lpRewardsApr?: number
+  liquidity?: BigNumber
+}
+export interface PoolWithStakedValue extends DeserializedPool {
   apr?: number
   lpRewardsApr?: number
   liquidity?: BigNumber

@@ -8,16 +8,17 @@ import { useAppDispatch } from '../../../../state'
 import { useHarvestFarm } from '../../../../hooks/Farms/useHarvestFarm'
 import { ToastContext } from '../../../../contexts/ToastContext'
 import useI18n from '../../../../hooks/useI18n'
-import { getBalanceNumber, getFullDisplayBalance } from '../../../../utils/formatBalance'
-import { FarmWithStakedValue } from '../../../../state/types'
+import { getBalanceNumber } from '../../../../utils/formatBalance'
+import { PoolWithStakedValue } from '../../../../state/types'
 import { getBscScanLink } from '../../../../utils'
 import { defaultChainId } from '../../../../config'
-import { fetchFarmUserDataAsync } from '../../../../state/farms'
+import { fetchPoolUserDataAsync } from '../../../../state/pools'
 import useActiveWeb3React from '../../../../hooks/useActiveWeb3React'
+import useStakePools from '../../../../hooks/Farms/useStakeFarms'
 
-interface FarmCardActionsProps {
+interface PoolCardActionsProps {
   earnings: BigNumber
-  farm: FarmWithStakedValue
+  pool: PoolWithStakedValue
   pid: number
 }
 
@@ -32,11 +33,19 @@ const Balance = styled(Heading)`
   font-size: 24px;
 `
 
-const HarvestAction: React.FC<FarmCardActionsProps> = ({farm, earnings, pid }) => {
+const Buttons = styled.div`
+  display: flex;
+  align-content: center;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+`
+
+const HarvestAction: React.FC<PoolCardActionsProps> = ({ pool, earnings, pid }) => {
   const TranslateString = useI18n()
   const [pendingTx, setPendingTx] = useState(false)
-  const {account} = useActiveWeb3React()
-  const {fetchWithCatchTxError, loading} = useCatchTxError()
+  const { account } = useActiveWeb3React()
+  const { fetchWithCatchTxError, loading } = useCatchTxError()
 
   const dispatch = useAppDispatch()
   const { addToast } = useContext(ToastContext)
@@ -46,10 +55,11 @@ const HarvestAction: React.FC<FarmCardActionsProps> = ({farm, earnings, pid }) =
   const displayBalance = useMemo(() => {
     return fromWei(earnings.toString())
   }, [earnings])
-  const {onReward} = useHarvestFarm(pid)
+  const { onReward } = useHarvestFarm(pid)
+  const { onStake } = useStakePools(pid)
   const canHarvest: boolean = useMemo(() => {
-    return farm.userData?.canHarvest || false
-  }, [farm])
+    return pool.userData?.canHarvest || false
+  }, [pool])
   const onHarvest = useCallback(async () => {
     setPendingTx(true)
     const receipt = await fetchWithCatchTxError(() => {
@@ -59,7 +69,7 @@ const HarvestAction: React.FC<FarmCardActionsProps> = ({farm, earnings, pid }) =
       const toast: Toast = {
         id: `id-${Date.now()}`,
         title: `Harvested`,
-        description: `Your ${farm.token.symbol || 'DB'} earnings have been sent to your wallet!`,
+        description: `Your ${pool.token.symbol || 'DB'} earnings have been sent to your wallet!`,
         type: toastTypes.SUCCESS,
       }
       toast.action = {
@@ -68,15 +78,46 @@ const HarvestAction: React.FC<FarmCardActionsProps> = ({farm, earnings, pid }) =
       }
       addToast(toast)
       // @ts-ignore
-      dispatch(fetchFarmUserDataAsync({account, pids: [pid]}))
+      dispatch(fetchPoolUserDataAsync({ account, pids: [pid] }))
     }
     setPendingTx(false)
-  }, [account, addToast, dispatch, farm.token.symbol, fetchWithCatchTxError, onReward, pid])
+  }, [account, addToast, dispatch, pool.token.symbol, fetchWithCatchTxError, onReward, pid])
+
+  const onStakeHandler = useCallback(async () => {
+    setPendingTx(true)
+    const receipt = await fetchWithCatchTxError(() => {
+      return onStake(rawEarningsBalance.toString())
+    })
+    if (receipt?.status) {
+      const toast: Toast = {
+        id: `id-${Date.now()}`,
+        title: `Stake`,
+        description: `You stake ${fromWei(earnings.toString())} ${pool.lpSymbol}!`,
+        type: toastTypes.SUCCESS,
+      }
+      toast.action = {
+        text: 'View transaction',
+        url: getBscScanLink(receipt.transactionHash, 'transaction', defaultChainId),
+      }
+      addToast(toast)
+    }
+    setPendingTx(false)
+  }, [addToast, earnings, fetchWithCatchTxError, onStake, pool.lpSymbol, rawEarningsBalance])
 
   return (
-    <Flex mb='24px' mt={24} justifyContent='space-between' flexWrap="wrap" alignItems='center'>
+    <Flex mb='24px' mt={24} justifyContent='space-between' flexWrap='wrap' alignItems='center'>
       <Balance color='#fff'>{displayBalance}</Balance>
+
       <BalanceAndCompound>
+        <Button
+          disabled={rawEarningsBalance === 0 || pendingTx}
+          size='sm'
+          variant='secondary'
+          marginBottom='15px'
+          onClick={onStakeHandler}
+        >
+          {TranslateString(999, 'Compound')}
+        </Button>
         <Button
           disabled={rawEarningsBalance === 0 || pendingTx || !canHarvest}
           onClick={onHarvest}

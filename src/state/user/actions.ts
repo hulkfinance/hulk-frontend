@@ -11,6 +11,11 @@ export enum FarmStakedOnly {
   TRUE = 'true',
   FALSE = 'false',
 }
+export enum PoolStakedOnly {
+  ON_FINISHED = 'onFinished',
+  TRUE = 'true',
+  FALSE = 'false',
+}
 
 export enum ViewMode {
   TABLE = 'TABLE',
@@ -39,9 +44,11 @@ export const unmuteAudio = createAction<void>('user/unmuteAudio')
 export const updateUserFarmStakedOnly = createAction<{ userFarmStakedOnly: FarmStakedOnly }>(
   'user/updateUserFarmStakedOnly',
 )
-export const updateUserPoolStakedOnly = createAction<{ userPoolStakedOnly: boolean }>('user/updateUserPoolStakedOnly')
-export const updateUserPoolsViewMode = createAction<{ userPoolsViewMode: ViewMode }>('user/updateUserPoolsViewMode')
 export const updateUserFarmsViewMode = createAction<{ userFarmsViewMode: ViewMode }>('user/updateUserFarmsViewMode')
+export const updateUserPoolStakedOnly = createAction<{ userPoolStakedOnly: PoolStakedOnly }>(
+  'user/updateUserPoolStakedOnly',
+)
+export const updateUserPoolsViewMode = createAction<{ userPoolsViewMode: ViewMode }>('user/updateUserPoolsViewMode')
 export const updateUserPredictionAcceptedRisk = createAction<{ userAcceptedRisk: boolean }>(
   'user/updateUserPredictionAcceptedRisk',
 )
@@ -64,7 +71,6 @@ export const updateUserUsernameVisibility = createAction<{ userUsernameVisibilit
 export const updateGasPrice = createAction<{ gasPrice: string }>('user/updateGasPrice')
 
 export const addWatchlistToken = createAction<{ address: string }>('user/addWatchlistToken')
-export const addWatchlistPool = createAction<{ address: string }>('user/addWatchlistPool')
 
 export const hidePhishingWarningBanner = createAction<void>('user/hidePhishingWarningBanner')
 

@@ -1,17 +1,18 @@
 import BigNumber from 'bignumber.js'
-import { SerializedFarmConfig } from '../../config/constants/types'
+import { fromWei } from 'web3-utils'
+import { SerializedPoolConfig } from '../../config/constants/types'
 import { BIG_TEN, BIG_ZERO } from '../../utils/bigNumber'
-import { fetchPublicFarmsData } from './fetchPublicFarmData'
+import { fetchPublicPoolsData } from './fetchPublicPoolsData'
 import { fetchMasterChefData } from './fetchMasterChefData'
-import { SerializedFarm } from '../types'
+import { SerializedPool } from '../types'
 
-const fetchFarms = async (farmsToFetch: SerializedFarmConfig[]): Promise<SerializedFarm[]> => {
-  const farmResult = await fetchPublicFarmsData(farmsToFetch)
-  const masterChefResult = await fetchMasterChefData(farmsToFetch)
+const fetchPools = async (poolsToFetch: SerializedPoolConfig[]): Promise<SerializedPool[]> => {
+  const poolResult = await fetchPublicPoolsData(poolsToFetch)
+  const masterChefResult = await fetchMasterChefData(poolsToFetch)
 
-  return farmsToFetch.map((farm, index) => {
+  return poolsToFetch.map((pool, index) => {
     const [tokenBalanceLP, quoteTokenBalanceLP, lpTokenBalanceMC, lpTotalSupply, tokenDecimals, quoteTokenDecimals] =
-      farmResult[index]
+      poolResult[index]
 
     const [info, totalRegularAllocPoint] = masterChefResult[index]
 
@@ -23,18 +24,19 @@ const fetchFarms = async (farmsToFetch: SerializedFarmConfig[]): Promise<Seriali
     const quoteTokenAmountTotal = new BigNumber(quoteTokenBalanceLP).div(BIG_TEN.pow(quoteTokenDecimals))
 
     // Amount of quoteToken in the LP that are staked in the MC
-    const quoteTokenAmountMc = quoteTokenAmountTotal.times(lpTokenRatio)
+    // const quoteTokenAmountMc = quoteTokenAmountTotal.times(lpTokenRatio)
+    const quoteTokenAmountMc = info ? new BigNumber(fromWei(info.totalLp.toString())) : BIG_ZERO
 
     // Total staked in LP, in quote token value
-    const lpTotalInQuoteToken = quoteTokenAmountMc.times(new BigNumber(2))
+    const lpTotalInQuoteToken = quoteTokenAmountMc.times(new BigNumber(1))
 
     const allocPoint = info ? new BigNumber(info.allocPoint?._hex) : BIG_ZERO
     const poolWeight = totalRegularAllocPoint ? allocPoint.div(new BigNumber(totalRegularAllocPoint)) : BIG_ZERO
 
     return {
-      ...farm,
-      token: farm.token,
-      quoteToken: farm.quoteToken,
+      ...pool,
+      token: pool.token,
+      quoteToken: pool.quoteToken,
       tokenAmountTotal: tokenAmountTotal.toJSON(),
       quoteTokenAmountTotal: quoteTokenAmountTotal.toJSON(),
       lpTotalSupply: new BigNumber(lpTotalSupply).toJSON(),
@@ -46,4 +48,4 @@ const fetchFarms = async (farmsToFetch: SerializedFarmConfig[]): Promise<Seriali
   })
 }
 
-export default fetchFarms
+export default fetchPools

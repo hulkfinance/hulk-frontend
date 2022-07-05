@@ -30,6 +30,7 @@ const BalanceAndCompound = styled.div`
 
 const Balance = styled(Heading)`
   font-size: 24px;
+  word-break: break-all;
 `
 
 const HarvestAction: React.FC<FarmCardActionsProps> = ({farm, earnings, pid }) => {

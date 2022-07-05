@@ -4,7 +4,7 @@ import { Card, CardBody, Heading, Skeleton, Text } from '@hulkfinance/hulk-uikit
 import CardValue from './CardValue'
 import tvlImage from '../../../assets/images/TVL.png'
 import useI18n from '../../../hooks/useI18n'
-import { useTotalValue } from '../../../state/farms/hooks'
+import { usePriceHulkBnb, usePriceHULKBusd, useTotalValue } from '../../../state/farms/hooks'
 
 const StyledTotalValueLockedCard = styled.div`
   display: flex;
@@ -47,7 +47,8 @@ const TotalValueLockedCard = () => {
   const TranslateString = useI18n()
   // const data = useGetStats()
   const totalValue = useTotalValue();
-  // const tvl = totalValue.toFixed(2);
+  const busdPrice = usePriceHULKBusd()
+  const bnbPrice = usePriceHulkBnb()
 
   return (
     <StyledTotalValueLockedCard>
@@ -71,11 +72,11 @@ const TotalValueLockedCard = () => {
           <>
             <Row>
               <TextItem>HULK-BNB</TextItem>
-              <TextItem>$5.911</TextItem>
+              <TextItem>${bnbPrice.toNumber()}</TextItem>
             </Row>
             <Row>
               <TextItem>HULK-BUSD</TextItem>
-              <TextItem>$0.249</TextItem>
+              <TextItem>${busdPrice.toNumber()}</TextItem>
             </Row>
           </>
         </CardBody>

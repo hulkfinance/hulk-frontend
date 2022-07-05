@@ -53,7 +53,7 @@ export const useTotalSupply = () => {
     if (account && library) {
       const hulkContract = getHULKTokenContract(getProviderOrSigner(library, account))
       const supply = await hulkContract.totalSupply()
-      setTotalSupply(new BigNumber(supply))
+      setTotalSupply(new BigNumber(supply.toString()))
     }
   }, [account, library])
 
@@ -73,7 +73,7 @@ export const useBurnedBalance = (tokenAddress: string) => {
     if (account && library) {
       const hulkContract = getHULKTokenContract(getProviderOrSigner(library, account))
       const bal = await hulkContract.balanceOf('0x000000000000000000000000000000000000dEaD')
-      setBalance(new BigNumber(bal))
+      setBalance(new BigNumber(bal.toString()))
     }
   }, [account, library])
   useEffect(() => {

@@ -3,15 +3,15 @@ import masterchefABI from '../../config/abi/masterchef.json'
 import { multicallv2 } from '../../utils/multicall'
 import { getBalanceAmount } from '../../utils/formatBalance'
 import { ethersToBigNumber } from '../../utils/bigNumber'
-import { SerializedFarmConfig } from '../../config/constants/types'
-import { SerializedFarm } from '../types'
+import { SerializedPoolConfig } from '../../config/constants/types'
+import { SerializedPool } from '../types'
 import { getMasterChefAddress } from '../../utils/addressHelpers'
 import { getMasterchefContract } from '../../utils/contractHelpers'
 
 const masterChefAddress = getMasterChefAddress()
 const masterChefContract = getMasterchefContract()
 
-export const fetchMasterChefFarmPoolLength = async () => {
+export const fetchMasterChefPoolPoolLength = async () => {
   const poolLength = await masterChefContract.poolLength()
   return poolLength
 }
@@ -21,8 +21,8 @@ export const fetchMasterChefRegularHulkPerBlock = async () => {
   return getBalanceAmount(ethersToBigNumber(regularHulkPerBlock))
 }
 
-const masterChefFarmCalls = (farm: SerializedFarm) => {
-  const { pid } = farm
+const masterChefPoolCalls = (pool: SerializedPool) => {
+  const { pid } = pool
   return pid || pid === 0
     ? [
         {
@@ -38,9 +38,9 @@ const masterChefFarmCalls = (farm: SerializedFarm) => {
     : [null, null]
 }
 
-export const fetchMasterChefData = async (farms: SerializedFarmConfig[]): Promise<any[]> => {
-  const masterChefCalls = farms.map((farm) => masterChefFarmCalls(farm))
-  const chunkSize = masterChefCalls.flat().length / farms.length
+export const fetchMasterChefData = async (pools: SerializedPoolConfig[]): Promise<any[]> => {
+  const masterChefCalls = pools.map((pool) => masterChefPoolCalls(pool))
+  const chunkSize = masterChefCalls.flat().length / pools.length
   const masterChefAggregatedCalls: any = masterChefCalls
     .filter((masterChefCall) => masterChefCall[0] !== null && masterChefCall[1] !== null)
     .flat()

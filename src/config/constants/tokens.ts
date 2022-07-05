@@ -1,7 +1,7 @@
-import { ChainId, Token } from '@hulkfinance/hulk-swap-sdk';
+import { ChainId, Token } from '@hulkfinance/hulk-swap-sdk'
 import { serializeToken } from '../../state/user/hooks/helpers'
 import { SerializedToken } from './types'
-import {defaultChainId} from "../index";
+import { defaultChainId } from '../index'
 
 const { MAINNET, BSCTESTNET } = ChainId
 
@@ -2069,6 +2069,15 @@ export const mainnetTokens = defineTokens({
     'Wizardia Token',
     'https://wizardia.io/',
   ),
+
+  cake: new Token(
+    MAINNET,
+    '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
+    18,
+    'CAKE',
+    'PancakeSwap Token',
+    'https://pancakeswap.finance/',
+  ),
   ceek: new Token(MAINNET, '0xe0F94Ac5462997D2BC57287Ac3a3aE4C31345D66', 18, 'CEEK', 'CEEK', 'https://www.ceek.com/'),
 } as const)
 
@@ -2098,12 +2107,28 @@ export const testnetTokens = defineTokens({
     'https://www.paxos.com/busd/',
   ),
   usdt: new Token(
-      BSCTESTNET,
-      '0x68A2ad99c6a6D3fAdbed29Ca88333d479a47db80',
-      18,
-      'USDT',
-      'Tether USD',
-      'https://tether.to/'
+    BSCTESTNET,
+    '0xE9AE20576fFd4BAd0b5Ff1427D2D2424d5a52eB6',
+    18,
+    'USDT',
+    'Tether USD',
+    'https://tether.to/',
+  ),
+  usdc: new Token(
+    BSCTESTNET,
+    '0x7CACDFa2a0a119C5aa15d012Abe6586A8B911279',
+    18,
+    'USDC',
+    'Binance-Peg USD Coin',
+    'https://tether.to/',
+  ),
+  cake: new Token(
+    BSCTESTNET,
+    '0x6855A1CB070504977453bdf7ACA34cbDD9c6B7B8',
+    18,
+    'CAKE',
+    'CAKE',
+    'https://pancake.finance/',
   ),
 } as const)
 

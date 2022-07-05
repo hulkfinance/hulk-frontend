@@ -8,13 +8,14 @@ import { getMasterChefAddress } from '../../../utils/addressHelpers'
 import { useFarmsPoolLength } from '../../../state/farms/hooks'
 import { DEFAULT_TOKEN_DECIMAL } from '../../../config'
 import { SerializedFarmConfig } from '../../../config/constants/types'
+import useActiveWeb3React from '../../../hooks/useActiveWeb3React'
 
 export interface FarmWithBalance extends SerializedFarmConfig {
   balance: BigNumber
 }
 
 const useFarmsWithBalance = () => {
-  const { account } = useWeb3React()
+  const { account } = useActiveWeb3React()
   const poolLength = useFarmsPoolLength()
 
   const {
@@ -28,10 +29,9 @@ const useFarmsWithBalance = () => {
       const farmsCanFetch = farmsConfig.filter((f) => poolLength > f.pid)
       const calls = farmsCanFetch.map((farm) => ({
         address: getMasterChefAddress(),
-        name: 'pendingCake',
+        name: 'pendingHULK',
         params: [farm.pid, account],
       }))
-
       const rawResults = await multicall(masterChefABI, calls)
       const results = farmsCanFetch.map((farm, index) => ({ ...farm, balance: new BigNumber(rawResults[index]) }))
       const farmsWithBalances: FarmWithBalance[] = results.filter((balanceType) => balanceType.balance.gt(0))

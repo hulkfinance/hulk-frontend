@@ -2,22 +2,22 @@ import BigNumber from 'bignumber.js'
 import {createSelector} from '@reduxjs/toolkit'
 import {BIG_ZERO} from '../../utils/bigNumber'
 import {getBalanceAmount} from '../../utils/formatBalance'
-import {State, SerializedFarm, DeserializedFarm, DeserializedFarmUserData} from '../types'
+import {State, SerializedPool, DeserializedPool, DeserializedPoolUserData} from '../types'
 import {deserializeToken} from '../user/hooks/helpers'
 
-const deserializeFarmUserData = (farm: SerializedFarm): DeserializedFarmUserData => {
+const deserializePoolUserData = (pool: SerializedPool): DeserializedPoolUserData => {
     return {
-        allowance: farm.userData ? new BigNumber(farm.userData.allowance) : BIG_ZERO,
-        tokenBalance: farm.userData ? new BigNumber(farm.userData.tokenBalance) : BIG_ZERO,
-        stakedBalance: farm.userData ? new BigNumber(farm.userData.stakedBalance) : BIG_ZERO,
-        earnings: farm.userData ? new BigNumber(farm.userData.earnings) : BIG_ZERO,
-        canHarvest: farm.userData ? farm.userData.canHarvest : false,
-        nextHarvestUntil: farm.userData?.nextHarvestUntil
+        allowance: pool.userData ? new BigNumber(pool.userData.allowance) : BIG_ZERO,
+        tokenBalance: pool.userData ? new BigNumber(pool.userData.tokenBalance) : BIG_ZERO,
+        stakedBalance: pool.userData ? new BigNumber(pool.userData.stakedBalance) : BIG_ZERO,
+        earnings: pool.userData ? new BigNumber(pool.userData.earnings) : BIG_ZERO,
+        canHarvest: pool.userData ? pool.userData.canHarvest : false,
+        nextHarvestUntil: pool.userData?.nextHarvestUntil
     }
 }
 
-const deserializeFarm = (farm: SerializedFarm): DeserializedFarm => {
-    const {lpAddresses, lpSymbol, pid, dual, multiplier, isCommunity, quoteTokenPriceBusd, tokenPriceBusd, defaultApr, depositFeeBP} = farm
+const deserializePool = (pool: SerializedPool): DeserializedPool => {
+    const {lpAddresses, lpSymbol, pid, dual, multiplier, isCommunity, quoteTokenPriceBusd, tokenPriceBusd, defaultApr, depositFeeBP, v1pid} = pool
 
     return {
         lpAddresses,
@@ -27,41 +27,42 @@ const deserializeFarm = (farm: SerializedFarm): DeserializedFarm => {
         pid,
         dual,
         multiplier,
+        v1pid,
         isCommunity,
         quoteTokenPriceBusd,
         tokenPriceBusd,
-        token: deserializeToken(farm.token),
-        quoteToken: deserializeToken(farm.quoteToken),
-        userData: deserializeFarmUserData(farm),
-        tokenAmountTotal: farm.tokenAmountTotal ? new BigNumber(farm.tokenAmountTotal) : BIG_ZERO,
-        quoteTokenAmountTotal: farm.quoteTokenAmountTotal ? new BigNumber(farm.quoteTokenAmountTotal) : BIG_ZERO,
-        lpTotalInQuoteToken: farm.lpTotalInQuoteToken ? new BigNumber(farm.lpTotalInQuoteToken) : BIG_ZERO,
-        lpTotalSupply: farm.lpTotalSupply ? new BigNumber(farm.lpTotalSupply) : BIG_ZERO,
-        tokenPriceVsQuote: farm.tokenPriceVsQuote ? new BigNumber(farm.tokenPriceVsQuote) : BIG_ZERO,
-        poolWeight: farm.poolWeight ? new BigNumber(farm.poolWeight) : BIG_ZERO,
+        token: deserializeToken(pool.token),
+        quoteToken: deserializeToken(pool.quoteToken),
+        userData: deserializePoolUserData(pool),
+        tokenAmountTotal: pool.tokenAmountTotal ? new BigNumber(pool.tokenAmountTotal) : BIG_ZERO,
+        quoteTokenAmountTotal: pool.quoteTokenAmountTotal ? new BigNumber(pool.quoteTokenAmountTotal) : BIG_ZERO,
+        lpTotalInQuoteToken: pool.lpTotalInQuoteToken ? new BigNumber(pool.lpTotalInQuoteToken) : BIG_ZERO,
+        lpTotalSupply: pool.lpTotalSupply ? new BigNumber(pool.lpTotalSupply) : BIG_ZERO,
+        tokenPriceVsQuote: pool.tokenPriceVsQuote ? new BigNumber(pool.tokenPriceVsQuote) : BIG_ZERO,
+        poolWeight: pool.poolWeight ? new BigNumber(pool.poolWeight) : BIG_ZERO,
     }
 }
 
-const selectHulkFarm = (state: State) => state.farms.data.find((f) => f.pid === 2)
-const selectFarmByKey = (key: string, value: string | number) => (state: State) =>
+const selectHulkPool = (state: State) => state.pools.data.find((f) => f.pid === 2)
+const selectPoolByKey = (key: string, value: string | number) => (state: State) =>
 // @ts-ignore
-    state.farms.data.find((f) => f[key] === value)
+    state.pools.data.find((f) => f[key] === value)
 
-export const makeFarmFromPidSelector = (pid: number) =>
-    createSelector([selectFarmByKey('pid', pid)], (farm) => farm ? deserializeFarm(farm) : null)
+export const makePoolFromPidSelector = (pid: number) =>
+    createSelector([selectPoolByKey('pid', pid)], (pool) => pool ? deserializePool(pool) : null)
 
 export const makeBusdPriceFromPidSelector = (pid: number) =>
-    createSelector([selectFarmByKey('pid', pid)], (farm) => {
-        if (farm) {
-            const deserializedFarm = deserializeFarm(farm)
-            return deserializedFarm && new BigNumber(deserializedFarm.tokenPriceBusd || '')
+    createSelector([selectPoolByKey('pid', pid)], (pool) => {
+        if (pool) {
+            const deserializedPool = deserializePool(pool)
+            return deserializedPool && new BigNumber(deserializedPool.tokenPriceBusd || '')
         }
     })
 
-export const makeUserFarmFromPidSelector = (pid: number) =>
-    createSelector([selectFarmByKey('pid', pid)], (farm) => {
-        if (farm) {
-            const {userData} = deserializeFarm(farm)
+export const makeUserPoolFromPidSelector = (pid: number) =>
+    createSelector([selectPoolByKey('pid', pid)], (pool) => {
+        if (pool) {
+            const {userData} = deserializePool(pool)
             if (userData) {
                 const {allowance, tokenBalance, stakedBalance, earnings, canHarvest, nextHarvestUntil} = userData
                 return {
@@ -76,48 +77,48 @@ export const makeUserFarmFromPidSelector = (pid: number) =>
         }
     })
 
-export const priceHulkFromPidSelector = createSelector([selectHulkFarm], (hulkBnbFarm) => {
-    if (hulkBnbFarm) {
-        const deserializedHulkBnbFarm = deserializeFarm(hulkBnbFarm)
-        const umPriceBusdAsString = deserializedHulkBnbFarm.tokenPriceBusd
+export const priceHulkFromPidSelector = createSelector([selectHulkPool], (hulkBnbPool) => {
+    if (hulkBnbPool) {
+        const deserializedHulkBnbPool = deserializePool(hulkBnbPool)
+        const umPriceBusdAsString = deserializedHulkBnbPool.tokenPriceBusd
         return new BigNumber(umPriceBusdAsString || '')
     }
 })
 
-export const farmFromLpSymbolSelector = (lpSymbol: string) =>
-    createSelector([selectFarmByKey('lpSymbol', lpSymbol)], (farm) => farm ? deserializeFarm(farm) : null)
+export const poolFromLpSymbolSelector = (lpSymbol: string) =>
+    createSelector([selectPoolByKey('lpSymbol', lpSymbol)], (pool) => pool ? deserializePool(pool) : null)
 
 export const makeLpTokenPriceFromLpSymbolSelector = (lpSymbol: string) =>
-    createSelector([selectFarmByKey('lpSymbol', lpSymbol)], (farm) => {
+    createSelector([selectPoolByKey('lpSymbol', lpSymbol)], (pool) => {
         let lpTokenPrice = BIG_ZERO
-        if (farm) {
-            const deserializedFarm = deserializeFarm(farm)
-            if (deserializedFarm) {
-                const farmTokenPriceInUsd = deserializedFarm && new BigNumber(deserializedFarm.tokenPriceBusd || '')
+        if (pool) {
+            const deserializedPool = deserializePool(pool)
+            if (deserializedPool) {
+                const poolTokenPriceInUsd = deserializedPool && new BigNumber(deserializedPool.tokenPriceBusd || '')
 
-                if (deserializedFarm?.lpTotalSupply?.gt(0) && deserializedFarm.lpTotalInQuoteToken?.gt(0)) {
+                if (deserializedPool?.lpTotalSupply?.gt(0) && deserializedPool.lpTotalInQuoteToken?.gt(0)) {
                     // Total value of base token in LP
-                    const valueOfBaseTokenInFarm = farmTokenPriceInUsd.times(deserializedFarm.tokenAmountTotal || '')
+                    const valueOfBaseTokenInPool = poolTokenPriceInUsd.times(deserializedPool.tokenAmountTotal || '')
                     // Double it to get overall value in LP
-                    const overallValueOfAllTokensInFarm = valueOfBaseTokenInFarm.times(2)
+                    const overallValueOfAllTokensInPool = valueOfBaseTokenInPool.times(2)
                     // Divide total value of all tokens, by the number of LP tokens
-                    const totalLpTokens = getBalanceAmount(deserializedFarm.lpTotalSupply)
-                    lpTokenPrice = overallValueOfAllTokensInFarm.div(totalLpTokens)
+                    const totalLpTokens = getBalanceAmount(deserializedPool.lpTotalSupply)
+                    lpTokenPrice = overallValueOfAllTokensInPool.div(totalLpTokens)
                 }
             }
         }
         return lpTokenPrice
     })
 
-export const farmSelector = createSelector(
-    (state: State) => state.farms,
-    (farms) => {
-        const deserializedFarmsData = farms.data.map(deserializeFarm)
-        const {loadArchivedFarmsData, userDataLoaded, poolLength, regularHulkPerBlock} = farms
+export const poolSelector = createSelector(
+    (state: State) => state.pools,
+    (pools) => {
+        const deserializedPoolsData = pools.data.map(deserializePool)
+        const {loadArchivedPoolsData, userDataLoaded, poolLength, regularHulkPerBlock} = pools
         return {
-            loadArchivedFarmsData,
+            loadArchivedPoolsData,
             userDataLoaded,
-            data: deserializedFarmsData,
+            data: deserializedPoolsData,
             poolLength,
             regularHulkPerBlock,
         }

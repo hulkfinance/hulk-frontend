@@ -3,81 +3,81 @@ import BigNumber from 'bignumber.js'
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { ChainId } from '@hulkfinance/hulk-swap-sdk'
-import { farmsConfig } from '../../config/constants'
+import { poolsConfig } from '../../config/constants'
 import { useFastRefreshEffect, useSlowRefreshEffect } from '../../hooks/useRefreshEffect'
 import { useAppDispatch } from '../index'
-import { fetchFarmsPublicDataAsync, fetchFarmUserDataAsync, nonArchivedFarms } from '.'
-import { DeserializedFarm, DeserializedFarmsState, DeserializedFarmUserData, State } from '../types'
+import { fetchPoolsPublicDataAsync, fetchPoolUserDataAsync, nonArchivedPools } from '.'
+import { DeserializedPool, DeserializedPoolsState, DeserializedPoolUserData, State } from '../types'
 import {
-  farmSelector,
-  farmFromLpSymbolSelector,
+  poolSelector,
+  poolFromLpSymbolSelector,
   priceHulkFromPidSelector,
   makeBusdPriceFromPidSelector,
-  makeUserFarmFromPidSelector,
+  makeUserPoolFromPidSelector,
   makeLpTokenPriceFromLpSymbolSelector,
-  makeFarmFromPidSelector,
+  makePoolFromPidSelector,
 } from './selectors'
 import {defaultChainId} from "../../config";
 import {BIG_ZERO} from "../../utils/bigNumber";
 import { QuoteToken } from '../../config/constants/types'
 
-export const usePollFarmsWithUserData = (includeArchive = false) => {
+export const usePollPoolsWithUserData = (includeArchive = false) => {
   const dispatch = useAppDispatch()
   const { account } = useWeb3React()
 
   useSlowRefreshEffect(() => {
-    const farmsToFetch = includeArchive ? farmsConfig : nonArchivedFarms
-    const pids = farmsToFetch.map((farmToFetch: any) => farmToFetch.pid)
+    const poolsToFetch = includeArchive ? poolsConfig : nonArchivedPools
+    const pids = poolsToFetch.map((poolToFetch: any) => poolToFetch.pid)
 
     // @ts-ignore
-    dispatch(fetchFarmsPublicDataAsync(pids))
+    dispatch(fetchPoolsPublicDataAsync(pids))
 
     if (account) {
       // @ts-ignore
-      dispatch(fetchFarmUserDataAsync({ account, pids }))
+      dispatch(fetchPoolUserDataAsync({ account, pids }))
     }
   }, [includeArchive, dispatch, account])
 }
 
 /**
- * Fetches the "core" farm data used globally
+ * Fetches the "core" pool data used globally
  * 2 = CAKE-BNB LP
  * 3 = BUSD-BNB LP
  */
-const coreFarmPIDs: number[] = defaultChainId.toString() === String(ChainId.MAINNET) ? [0, 1, 2] : [0, 1, 2]
-export const usePollCoreFarmData = () => {
+const corePoolPIDs: number[] = defaultChainId.toString() === String(ChainId.MAINNET) ? [0, 1, 2] : [0, 1, 2]
+export const usePollCorePoolData = () => {
   const dispatch = useAppDispatch()
 
   useFastRefreshEffect(() => {
     // @ts-ignore
-    dispatch(fetchFarmsPublicDataAsync(coreFarmPIDs))
+    dispatch(fetchPoolsPublicDataAsync(corePoolPIDs))
   }, [dispatch])
 }
 
-export const useFarms = (): DeserializedFarmsState => {
-  return useSelector(farmSelector)
+export const usePools = (): DeserializedPoolsState => {
+  return useSelector(poolSelector)
 }
 
-export const useFarmsPoolLength = (): number => {
-  return useSelector((state: State) => state.farms.poolLength || 0)
+export const usePoolsPoolLength = (): number => {
+  return useSelector((state: State) => state.pools.poolLength || 0)
 }
 
-export const useFarmFromPid = (pid: number): DeserializedFarm | null => {
-  const farmFromPid = useMemo(() => makeFarmFromPidSelector(pid), [pid])
-  return useSelector(farmFromPid)
+export const usePoolFromPid = (pid: number): DeserializedPool | null => {
+  const poolFromPid = useMemo(() => makePoolFromPidSelector(pid), [pid])
+  return useSelector(poolFromPid)
 }
 
-export const useFarmFromLpSymbol = (lpSymbol: string): DeserializedFarm | null => {
-  const farmFromLpSymbol = useMemo(() => farmFromLpSymbolSelector(lpSymbol), [lpSymbol])
-  return useSelector(farmFromLpSymbol)
+export const usePoolFromLpSymbol = (lpSymbol: string): DeserializedPool | null => {
+  const poolFromLpSymbol = useMemo(() => poolFromLpSymbolSelector(lpSymbol), [lpSymbol])
+  return useSelector(poolFromLpSymbol)
 }
 
-export const useFarmUser = (pid: number): DeserializedFarmUserData | undefined => {
-  const farmFromPidUser = useMemo(() => makeUserFarmFromPidSelector(pid), [pid])
-  return useSelector(farmFromPidUser)
+export const usePoolUser = (pid: number): DeserializedPoolUserData | undefined => {
+  const poolFromPidUser = useMemo(() => makeUserPoolFromPidSelector(pid), [pid])
+  return useSelector(poolFromPidUser)
 }
 
-// Return the base token price for a farm, from a given pid
+// Return the base token price for a pool, from a given pid
 export const useBusdPriceFromPid = (pid: number): BigNumber => {
   const busdPriceFromPid = useMemo(() => makeBusdPriceFromPidSelector(pid), [pid])
   return useSelector(busdPriceFromPid) || BIG_ZERO
@@ -98,27 +98,27 @@ export const usePriceHULKBusd = (): BigNumber => {
 
 export const usePriceBnbBusd = (): BigNumber => {
   const pid = 2 // BUSD-BNB LP
-  const farm = useFarmFromPid(pid)
-  if (farm) {
-    return farm.tokenPriceVsQuote ? new BigNumber(farm.tokenPriceVsQuote) : BIG_ZERO
+  const pool = usePoolFromPid(pid)
+  if (pool) {
+    return pool.tokenPriceVsQuote ? new BigNumber(pool.tokenPriceVsQuote) : BIG_ZERO
   }
   return BIG_ZERO
 }
 export const useTotalValue = (): BigNumber => {
-  const farms = useFarms();
+  const pools = usePools();
   const bnbPrice = usePriceBnbBusd();
   const hulkPrice = usePriceHULKBusd();
   let value = new BigNumber(0);
-  for (let i = 0; i < farms.data.length; i++) {
-    const farm = farms.data[i]
-    if (farm.lpTotalInQuoteToken) {
+  for (let i = 0; i < pools.data.length; i++) {
+    const pool = pools.data[i]
+    if (pool.lpTotalInQuoteToken) {
       let val;
-      if (farm.quoteToken.symbol === QuoteToken.BNB) {
-        val = (bnbPrice.times(farm.lpTotalInQuoteToken));
-      } else if (farm.quoteToken.symbol === QuoteToken.CAKE) {
-        val = (hulkPrice.times(farm.lpTotalInQuoteToken));
+      if (pool.quoteToken.symbol === QuoteToken.BNB) {
+        val = (bnbPrice.times(pool.lpTotalInQuoteToken));
+      } else if (pool.quoteToken.symbol === QuoteToken.CAKE) {
+        val = (hulkPrice.times(pool.lpTotalInQuoteToken));
       } else {
-        val = (farm.lpTotalInQuoteToken);
+        val = (pool.lpTotalInQuoteToken);
       }
       value = value.plus(val);
     }

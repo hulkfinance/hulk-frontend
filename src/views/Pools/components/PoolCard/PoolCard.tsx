@@ -5,10 +5,9 @@ import { Flex, Text, Skeleton } from '@hulkfinance/hulk-uikit'
 import DetailsSection from './DetailsSection'
 import CardHeading from './CardHeading'
 import CardActionsContainer from './CardActionsContainer'
-import ApyButton from './ApyButton'
 import useI18n from '../../../../hooks/useI18n'
 import ExpandableSectionButton from '../../../../components/ExpandableSectionButton'
-import { FarmWithStakedValue } from '../../../../state/types'
+import { PoolWithStakedValue } from '../../../../state/types'
 import { BIG_ZERO } from '../../../../utils/bigNumber'
 import { defaultChainId } from '../../../../config'
 import { getHULKTokenAddress } from '../../../../utils/addressHelpers'
@@ -77,7 +76,7 @@ const ExpandingWrapper = styled.div<{ expanded: boolean }>`
   overflow: hidden;
 `
 
-const FarmText = styled(Text)`
+const PoolText = styled(Text)`
   font-weight: 400;
   font-size: 20px;
   line-height: 1.2;
@@ -87,8 +86,8 @@ const Row = styled(Flex)`
   margin-bottom: 16px;
 `
 
-interface FarmCardProps {
-  farm: FarmWithStakedValue
+interface PoolCardProps {
+  pool: PoolWithStakedValue
   removed: boolean
   hulkPrice?: BigNumber
   bnbPrice?: BigNumber
@@ -96,72 +95,64 @@ interface FarmCardProps {
   account?: string | null
 }
 
-const FarmCard: React.FC<FarmCardProps> = ({ farm, removed, hulkPrice, bnbPrice, account }) => {
+const PoolCard: React.FC<PoolCardProps> = ({ pool, removed, hulkPrice, bnbPrice, account }) => {
   const TranslateString = useI18n()
 
   const [showExpandableSection, setShowExpandableSection] = useState(false)
 
-  // const isCommunityFarm = communityFarms.includes(farm.tokenSymbol)
+  // const isCommunityPool = communityPools.includes(pool.tokenSymbol)
   // We assume the token name is coin pair + lp e.g. CAKE-BNB LP, LINK-BNB LP,
   // NAR-CAKE LP. The images should be hulk-bnb.svg, link-bnb.svg, nar-hulk.svg
-  // const farmImage = farm.lpSymbol.split(' ')[0].toLocaleLowerCase()
-  const farmImage = 'bnb-busd'
+  // const poolImage = pool.lpSymbol.split(' ')[0].toLocaleLowerCase()
+  const poolImage = 'bnb-busd'
 
   const totalValueFormatted =
-    farm.liquidity && farm.liquidity.gt(0)
-      ? `$${farm.liquidity.toNumber().toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+    pool.liquidity && pool.liquidity.gt(0)
+      ? `$${pool.liquidity.toNumber().toLocaleString(undefined, { maximumFractionDigits: 0 })}`
       : ''
 
-  const lpLabel = farm.lpSymbol
+  const lpLabel = pool.lpSymbol
   const earnLabel = 'HULK'
-  const farmAPY = farm.apr || farm.defaultApr
+  const poolAPY = parseInt(String(pool.apr || pool.defaultApr))
 
   const timeToHarvest = useMemo(() => {
-    if (farm.userData?.nextHarvestUntil) {
-      return dateFormat(new Date(farm.userData.nextHarvestUntil))
+    if (pool.userData?.nextHarvestUntil) {
+      return dateFormat(new Date(pool.userData.nextHarvestUntil))
     }
     return '-'
-  }, [farm.userData])
+  }, [pool.userData])
 
   return (
     <FCard>
-      {farm.token.symbol === 'HULK' && <StyledCardAccent />}
+      {pool.token.symbol === 'HULK' && <StyledCardAccent />}
       <CardHeading
         lpLabel={lpLabel}
-        multiplier={farm.multiplier || '1x'}
-        depositFee={farm.depositFeeBP}
-        token0={farm.token.symbol || ''}
-        token1={farm.quoteToken.symbol || ''}
+        multiplier={pool.multiplier || '1x'}
+        depositFee={pool.depositFeeBP}
+        token0={pool.token.symbol || ''}
+        token1={pool.v1pid?.toString() || '1'}
       />
       {!removed && (
         <Row justifyContent='space-between' alignItems='center'>
-          <FarmText>{TranslateString(352, 'APR')}:</FarmText>
-          <FarmText style={{ display: 'flex', alignItems: 'center' }}>
-            <ApyButton
-              lpLabel={lpLabel}
-              quoteTokenAdresses={farm.quoteToken.address}
-              quoteTokenSymbol={farm.quoteToken.symbol}
-              tokenAddresses={farm.token.address}
-              hulkPrice={hulkPrice || BIG_ZERO}
-              apy={farm.apr || parseFloat(farm.defaultApr)}
-            />
-            {farmAPY}%
-          </FarmText>
+          <PoolText>{TranslateString(352, 'APR')}:</PoolText>
+          <PoolText style={{ display: 'flex', alignItems: 'center' }}>
+            {poolAPY}%
+          </PoolText>
         </Row>
       )}
       <Row justifyContent='space-between'>
-        <FarmText>{TranslateString(318, 'Earn')}:</FarmText>
-        <FarmText>{earnLabel}</FarmText>
+        <PoolText>{TranslateString(318, 'Earn')}:</PoolText>
+        <PoolText>{earnLabel}</PoolText>
       </Row>
       <Row justifyContent='space-between'>
-        <FarmText>{TranslateString(10001, 'Deposit Fee')}:</FarmText>
-        <FarmText>{(farm.depositFeeBP / 100)}%</FarmText>
+        <PoolText>{TranslateString(10001, 'Deposit Fee')}:</PoolText>
+        <PoolText>{(pool.depositFeeBP / 100)}%</PoolText>
       </Row>
       <Row justifyContent='space-between'>
-        <FarmText>Harvest Lockup:</FarmText>
-        <FarmText>{timeToHarvest}</FarmText>
+        <PoolText>Harvest Lockup:</PoolText>
+        <PoolText>{timeToHarvest}</PoolText>
       </Row>
-      <CardActionsContainer farm={farm} account={account} />
+      <CardActionsContainer pool={pool} account={account} />
       <Divider />
       <ExpandableSectionButton
         onClick={() => setShowExpandableSection(!showExpandableSection)}
@@ -170,22 +161,22 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm, removed, hulkPrice, bnbPrice,
       <ExpandingWrapper expanded={showExpandableSection}>
         <DetailsSection
           removed={removed}
-          isTokenOnly={farm.token.address === getHULKTokenAddress()}
+          isTokenOnly={pool.token.address === getHULKTokenAddress()}
           bscScanAddress={
-            farm.token.address === farm.quoteToken.address ?
-              getBscScanLink(farm.token.address, 'token', defaultChainId)
+            pool.token.address === pool.quoteToken.address ?
+              getBscScanLink(pool.token.address, 'token', defaultChainId)
               :
-              getBscScanLink(farm.lpAddresses[defaultChainId], 'token', defaultChainId)
+              getBscScanLink(pool.lpAddresses[defaultChainId], 'token', defaultChainId)
           }
           totalValueFormated={totalValueFormatted}
           lpLabel={lpLabel}
-          quoteTokenAdresses={farm.quoteToken.address}
-          quoteTokenSymbol={farm.quoteToken.symbol}
-          tokenAddresses={farm.token.address}
+          quoteTokenAdresses={pool.quoteToken.address}
+          quoteTokenSymbol={pool.quoteToken.symbol}
+          tokenAddresses={pool.token.address}
         />
       </ExpandingWrapper>
     </FCard>
   )
 }
 
-export default FarmCard
+export default PoolCard

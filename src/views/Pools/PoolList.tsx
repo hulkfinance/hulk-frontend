@@ -1,8 +1,8 @@
 import React, {useContext} from 'react';
 import {useWeb3React} from "@web3-react/core";
-import { usePriceHULKBusd } from '../../state/farms/hooks'
-import {FarmsContext} from "../../contexts/FarmContext";
-import FarmCard from './components/FarmCard/FarmCard';
+import { usePriceHULKBusd } from '../../state/pools/hooks'
+import {PoolsContext} from "../../contexts/PoolContext";
+import PoolCard from './components/PoolCard/PoolCard';
 import FlexLayout from '../../components/layout/Flex';
 
 
@@ -15,19 +15,19 @@ const getDisplayApr = (cakeRewardsApr: any, lpRewardsApr: any) => {
     }
     return null
 }
-function FarmList() {
+function PoolList() {
     const {account} = useWeb3React()
-    const {chosenFarmsMemoized} = useContext(FarmsContext)
+    const {chosenPoolsMemoized} = useContext(PoolsContext)
     const hulkPrice = usePriceHULKBusd()
     return (
       <FlexLayout>
             {
-                chosenFarmsMemoized.map((farm) => {
+                chosenPoolsMemoized.map((pool) => {
                     return (
-                        <FarmCard
-                            key={farm.pid}
-                            farm={farm}
-                            displayApr={getDisplayApr(farm.apr, farm.lpRewardsApr)}
+                        <PoolCard
+                            key={pool.pid}
+                            pool={pool}
+                            displayApr={getDisplayApr(pool.apr, pool.lpRewardsApr)}
                             hulkPrice={hulkPrice}
                             account={account}
                             removed={false}
@@ -39,4 +39,4 @@ function FarmList() {
     );
 }
 
-export default FarmList;
+export default PoolList;

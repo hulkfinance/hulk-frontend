@@ -1,10 +1,9 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useRouteMatch, Link } from 'react-router-dom'
 import { ButtonMenu, ButtonMenuItem, Text, Toggle } from '@hulkfinance/hulk-uikit'
 import useI18n from '../../../../hooks/useI18n'
 
-interface FarmTabButtonsProps {
+interface PoolTabButtonsProps {
   stakedOnly: boolean,
   setStakedOnly: (arg: boolean) => void,
   isActive: boolean,
@@ -12,7 +11,7 @@ interface FarmTabButtonsProps {
 }
 
 
-const FarmTabButtons = ({ stakedOnly, setStakedOnly, isActive, setIsActive }: FarmTabButtonsProps) => {
+const PoolTabButtons = ({ stakedOnly, setStakedOnly, isActive, setIsActive }: PoolTabButtonsProps) => {
   const TranslateString = useI18n()
   return (
     <Wrapper>
@@ -32,7 +31,7 @@ const FarmTabButtons = ({ stakedOnly, setStakedOnly, isActive, setIsActive }: Fa
   )
 }
 
-export default FarmTabButtons
+export default PoolTabButtons
 
 const Wrapper = styled.div`
   display: flex;

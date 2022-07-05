@@ -11,6 +11,7 @@ const priceHelperLps: SerializedFarmConfig[] = [
    */
   {
     pid: -1,
+    v1pid: -1,
     lpSymbol: 'QSD-BNB LP', defaultApr: '10',
     depositFeeBP: 10,
     lpAddresses: {

@@ -66,12 +66,6 @@ export interface Ifo {
   [PoolIds.poolUnlimited]: IfoPoolInfo
 }
 
-export enum PoolCategory {
-  'COMMUNITY' = 'Community',
-  'CORE' = 'Core',
-  'BINANCE' = 'Binance', // Pools using native BNB behave differently than pools using a token
-  'AUTO' = 'Auto',
-}
 export interface Language {
   code: string;
   language: string;
@@ -80,7 +74,7 @@ export interface Language {
 
 interface FarmConfigBaseProps {
   pid: number
-  v1pid?: number
+  v1pid: number
   lpSymbol: string
   defaultApr: string,
   lpAddresses: Address
@@ -105,26 +99,31 @@ export interface DeserializedFarmConfig extends FarmConfigBaseProps {
 }
 
 interface PoolConfigBaseProps {
-  sousId: number
-  contractAddress: Address
-  poolCategory: PoolCategory
-  tokenPerBlock: string
-  sortOrder?: number
-  harvest?: boolean
-  isFinished?: boolean
-  enableEmergencyWithdraw?: boolean
-  version?: number
+  pid: number
+  v1pid: number
+  lpSymbol: string
+  defaultApr: string,
+  lpAddresses: Address
+  multiplier?: string
+  isCommunity?: boolean
+  depositFeeBP: number
+  dual?: {
+    rewardPerBlock: number
+    earnLabel: string
+    endBlock: number
+  }
 }
 
 export interface SerializedPoolConfig extends PoolConfigBaseProps {
-  earningToken: SerializedToken
-  stakingToken: SerializedToken
+  token: SerializedToken
+  quoteToken: SerializedToken
 }
 
 export interface DeserializedPoolConfig extends PoolConfigBaseProps {
-  earningToken: Token
-  stakingToken: Token
+  token: Token
+  quoteToken: Token
 }
+
 
 export type Images = {
   lg: string

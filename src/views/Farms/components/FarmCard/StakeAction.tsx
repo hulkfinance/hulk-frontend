@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import BigNumber from 'bignumber.js'
 import { Button, Flex, Heading, IconButton, AddIcon, MinusIcon, useModal } from '@hulkfinance/hulk-uikit'
+import { parseUnits } from '@ethersproject/units'
 import DepositModal from '../DepositModal'
 import WithdrawModal from '../WithdrawModal'
 import useI18n from '../../../../hooks/useI18n'
@@ -9,7 +10,6 @@ import { formatBigNumber, getBalanceNumber, getFullDisplayBalance } from '../../
 import useStakeFarms from '../../../../hooks/Farms/useStakeFarms'
 import useUnstakeFarms from '../../../../hooks/Farms/useUnstakeFarms'
 import { FarmWithStakedValue } from '../../../../state/types'
-import { parseUnits } from '@ethersproject/units'
 
 interface FarmCardActionsProps {
   stakedBalance: BigNumber

@@ -17,6 +17,7 @@ import { usePriceHULKBusd } from '../../../state/farms/hooks'
 import { getHULKTokenAddress } from '../../../utils/addressHelpers'
 import useFarmsWithBalance from '../hooks/useFarmsWithBalance'
 import { useAllHarvest } from '../../../hooks/Farms/useHarvestFarm'
+import tokens from '../../../config/constants/tokens'
 
 const StyledFarmStakingCard = styled(Card)`
   min-height: 376px;
@@ -109,8 +110,10 @@ const FarmedStakingCard = () => {
   const { account, library } = useActiveWeb3React()
   const TranslateString = useI18n()
   const farmsWithBalance = useFarmsWithBalance()
-  const hulkBalanceAmount = useTokenBalance(getHULKTokenAddress())?.toSignificant(2)
-  const hulkBalance = getBalanceNumber(new BigNumber(hulkBalanceAmount || 0))
+  const hulkBalanceAmount = useTokenBalance(account || undefined, tokens.hulktoken)?.toSignificant(2)
+  const hulkBalance: number = useMemo(() => {
+    return parseFloat(hulkBalanceAmount || '0')
+  }, [hulkBalanceAmount])
   const hulkPrice = usePriceHULKBusd().toNumber()
   const {earningsSum} = farmsWithBalance
   const balancesWithValue = farmsWithBalance.farmsWithStakedBalance

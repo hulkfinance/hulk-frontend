@@ -26,6 +26,7 @@ const Home = lazy(() => import('./views/Home'))
 const Referral = lazy(() => import('./views/Referral'))
 const PreSale = lazy(() => import('./views/PreSale'))
 const Farms = lazy(() => import('./views/Farms'))
+const Pools = lazy(() => import('./views/Pools'))
 const NotFound = lazy(() => import('./views/NotFound'))
 
 // This config is required for number formating
@@ -93,11 +94,8 @@ const App: React.FC = () => {
                 <Farms />
               </Route>
               <Route path='/pools'>
-                <Farms tokenMode />
+                <Pools />
               </Route>
-              {/* <Route path='/launch'> */}
-              {/*  <Pools /> */}
-              {/* </Route> */}
               <Route path='/referral'>
                 <Referral />
               </Route>

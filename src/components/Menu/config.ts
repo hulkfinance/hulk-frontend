@@ -33,18 +33,18 @@ const config: MenuEntry[] = [
   {
     label: "Pools",
     icon: "PoolIcon",
-    href: "/syrup",
+    href: "/pools",
   },
   {
     label: "Referrals",
     icon: "ReferralIcon",
     href: "/referral",
   },
-  {
-    label: "Audits",
-    icon: "AuditIcon",
-    href: "/audits",
-  },
+  // {
+  //   label: "Audits",
+  //   icon: "AuditIcon",
+  //   href: "/audits",
+  // },
   {
     label: "Listings",
     icon: "ListingIcon",
@@ -79,21 +79,21 @@ const config: MenuEntry[] = [
     label: "More",
     icon: "MoreIcon",
     items: [
-      {
-        label: "Voting",
-        href: "https://voting.hulkfiinance.com",
-      },
+      // {
+      //   label: "Voting",
+      //   href: "https://voting.hulkfiinance.com",
+      // },
       {
         label: "Github",
-        href: "https://github.com/hulkfiinance",
+        href: "https://github.com/hulkfinance",
       },
       {
         label: "Docs",
-        href: "https://docs.hulkfiinance.com",
+        href: "https://financehulk.gitbook.io/hulkfinance/",
       },
       {
         label: "Blog",
-        href: "https://hulkfiinance.medium.com",
+        href: "https://medium.com/@hulk-finance",
       },
     ],
   },

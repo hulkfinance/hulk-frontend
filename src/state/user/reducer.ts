@@ -5,7 +5,6 @@ import { updateVersion } from '../global/actions'
 import {
   addSerializedPair,
   addSerializedToken,
-  addWatchlistPool,
   addWatchlistToken,
   FarmStakedOnly,
   removeSerializedPair,
@@ -18,8 +17,6 @@ import {
   updateUserExpertMode,
   updateUserFarmStakedOnly,
   updateUserFarmsViewMode,
-  updateUserPoolStakedOnly,
-  updateUserPoolsViewMode,
   updateUserSingleHopOnly,
   updateUserSlippageTolerance,
   ViewMode,
@@ -33,7 +30,7 @@ import {
   setChartViewMode,
   ChartViewMode,
   setSubgraphHealthIndicatorDisplayed,
-  updateUserLimitOrderAcceptedWarning,
+  updateUserLimitOrderAcceptedWarning, updateUserPoolsViewMode, PoolStakedOnly, updateUserPoolStakedOnly,
 } from './actions'
 import { GAS_PRICE_GWEI } from '../types'
 
@@ -73,9 +70,9 @@ export interface UserState {
   isSubgraphHealthIndicatorDisplayed: boolean
   userChartViewMode: ChartViewMode
   userFarmStakedOnly: FarmStakedOnly
-  userPoolStakedOnly: boolean
-  userPoolsViewMode: ViewMode
   userFarmsViewMode: ViewMode
+  userPoolStakedOnly: PoolStakedOnly
+  userPoolsViewMode: ViewMode
   userPredictionAcceptedRisk: boolean
   userLimitOrderAcceptedWarning: boolean
   userPredictionChartDisclaimerShow: boolean
@@ -84,7 +81,6 @@ export interface UserState {
   userUsernameVisibility: boolean
   gasPrice: string
   watchlistTokens: string[]
-  watchlistPools: string[]
   hideTimestampPhishingWarningBanner: number
 }
 
@@ -105,9 +101,9 @@ export const initialState: UserState = {
   isSubgraphHealthIndicatorDisplayed: false,
   userChartViewMode: ChartViewMode.BASIC,
   userFarmStakedOnly: FarmStakedOnly.ON_FINISHED,
-  userPoolStakedOnly: false,
-  userPoolsViewMode: ViewMode.TABLE,
   userFarmsViewMode: ViewMode.TABLE,
+  userPoolStakedOnly: PoolStakedOnly.ON_FINISHED,
+  userPoolsViewMode: ViewMode.TABLE,
   userPredictionAcceptedRisk: false,
   userLimitOrderAcceptedWarning: false,
   userPredictionChartDisclaimerShow: true,
@@ -116,7 +112,6 @@ export const initialState: UserState = {
   userUsernameVisibility: false,
   gasPrice: GAS_PRICE_GWEI.default,
   watchlistTokens: [],
-  watchlistPools: [],
   hideTimestampPhishingWarningBanner: 0,
 }
 
@@ -196,14 +191,14 @@ export default createReducer(initialState, (builder) =>
     .addCase(updateUserFarmStakedOnly, (state, { payload: { userFarmStakedOnly } }) => {
       state.userFarmStakedOnly = userFarmStakedOnly
     })
+    .addCase(updateUserFarmsViewMode, (state, { payload: { userFarmsViewMode } }) => {
+      state.userFarmsViewMode = userFarmsViewMode
+    })
     .addCase(updateUserPoolStakedOnly, (state, { payload: { userPoolStakedOnly } }) => {
       state.userPoolStakedOnly = userPoolStakedOnly
     })
     .addCase(updateUserPoolsViewMode, (state, { payload: { userPoolsViewMode } }) => {
       state.userPoolsViewMode = userPoolsViewMode
-    })
-    .addCase(updateUserFarmsViewMode, (state, { payload: { userFarmsViewMode } }) => {
-      state.userFarmsViewMode = userFarmsViewMode
     })
     .addCase(updateUserPredictionAcceptedRisk, (state, { payload: { userAcceptedRisk } }) => {
       state.userPredictionAcceptedRisk = userAcceptedRisk
@@ -235,17 +230,6 @@ export default createReducer(initialState, (builder) =>
         // Remove token from watchlist
         const newTokens = state.watchlistTokens.filter((x) => x !== address)
         state.watchlistTokens = newTokens
-      }
-    })
-    .addCase(addWatchlistPool, (state, { payload: { address } }) => {
-      // state.watchlistPools can be undefined for pre-loaded localstorage user state
-      const poolsWatchlist = state.watchlistPools ?? []
-      if (!poolsWatchlist.includes(address)) {
-        state.watchlistPools = [...poolsWatchlist, address]
-      } else {
-        // Remove pool from watchlist
-        const newPools = state.watchlistPools.filter((x) => x !== address)
-        state.watchlistPools = newPools
       }
     })
     .addCase(hidePhishingWarningBanner, (state) => {

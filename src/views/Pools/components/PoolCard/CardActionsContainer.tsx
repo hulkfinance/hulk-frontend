@@ -5,12 +5,12 @@ import { Button, Flex, Text, Toast, toastTypes } from '@hulkfinance/hulk-uikit'
 import { parseUnits } from '@ethersproject/units'
 import StakeAction from './StakeAction'
 import HarvestAction from './HarvestAction'
-import { FarmWithStakedValue } from '../../../../state/types'
+import { PoolWithStakedValue } from '../../../../state/types'
 import useI18n from '../../../../hooks/useI18n'
-import { useFarmFromPid, useFarmUser } from '../../../../state/farms/hooks'
+import { usePoolFromPid, usePoolUser } from '../../../../state/pools/hooks'
 import UnlockButton from '../../../../components/UnlockButton'
 import { useERC20, useLPContract } from '../../../../hooks/useContract'
-import useApproveFarm from '../../../../hooks/Farms/useApproveFarm'
+import useApprovePool from '../../../../hooks/Farms/useApproveFarm'
 import getLiquidityUrlPathParts from '../../../../utils/getLiquidityUrlPathParts'
 import { BIG_ZERO } from '../../../../utils/bigNumber'
 import { BASE_ADD_LIQUIDITY_URL, defaultChainId } from '../../../../config'
@@ -20,38 +20,38 @@ import useCatchTxError from '../../../../hooks/useCatchTxError'
 import { getAddress, getHULKTokenAddress } from '../../../../utils/addressHelpers'
 import { getBscScanLink } from '../../../../utils'
 import { ToastContext } from '../../../../contexts/ToastContext'
-import { fetchFarmUserDataAsync } from '../../../../state/farms'
+import { fetchPoolUserDataAsync } from '../../../../state/pools'
 
 const Action = styled.div`
   margin-top: 8px;
 `
 
-const FarmText = styled(Text)`
+const PoolText = styled(Text)`
   font-weight: 400;
   text-transform: uppercase;
   font-size: 20px;
   line-height: 1.2;
 `
 
-interface FarmCardActionsProps {
-  farm: FarmWithStakedValue
+interface PoolCardActionsProps {
+  pool: PoolWithStakedValue
   account?: string | null
 }
 
-const CardActions: React.FC<FarmCardActionsProps> = ({ farm, account }) => {
+const CardActions: React.FC<PoolCardActionsProps> = ({ pool, account }) => {
   const TranslateString = useI18n()
-  const { pid } = farm
-  const lpLabel = farm.lpSymbol
-  const earnLabel = farm.dual ? farm.dual.earnLabel : 'HULK'
+  const { pid } = pool
+  const lpLabel = pool.lpSymbol
+  const earnLabel = pool.dual ? pool.dual.earnLabel : 'HULK'
   const { addToast } = useContext(ToastContext)
   const liquidityUrlPathParts = getLiquidityUrlPathParts({
-    quoteTokenAddress: farm.quoteToken.address,
-    tokenAddress: farm.token.address,
+    quoteTokenAddress: pool.quoteToken.address,
+    tokenAddress: pool.token.address,
   })
   const addLiquidityUrl = `${BASE_ADD_LIQUIDITY_URL}/${liquidityUrlPathParts}`
-  const lpAddress = getAddress(farm.lpAddresses)
+  const lpAddress = getAddress(pool.lpAddresses)
   const { fetchWithCatchTxError, loading: pendingTx } = useCatchTxError()
-  const { allowance } = farm.userData || {}
+  const { allowance } = pool.userData || {}
   // useEffect(() => {
   //   console.log('allowance', allowance, pid)
   // },[allowance, pid])
@@ -85,7 +85,7 @@ const CardActions: React.FC<FarmCardActionsProps> = ({ farm, account }) => {
       setTokens({token0: getHULKTokenAddress(), token1: getHULKTokenAddress()})
     }
   }, [lpAddress, lpContract])
-  const { onApprove } = useApproveFarm(lpContract)
+  const { onApprove } = useApprovePool(lpContract)
 
   const handleApprove = useCallback(async () => {
     if (!onApprove) return
@@ -105,36 +105,36 @@ const CardActions: React.FC<FarmCardActionsProps> = ({ farm, account }) => {
       }
       addToast(toast)
       // @ts-ignore
-      dispatch(fetchFarmUserDataAsync({ account, pids: [pid] }))
+      dispatch(fetchPoolUserDataAsync({ account, pids: [pid] }))
     }
   }, [onApprove, fetchWithCatchTxError, addToast, dispatch, account, pid])
-  const farmUser = useFarmUser(pid)
+  const poolUser = usePoolUser(pid)
   const { stakedBalance, earnings, tokenBalance } = useMemo(() => {
-    if (farmUser) {
-      return { stakedBalance: farmUser.stakedBalance, earnings: farmUser.earnings, tokenBalance: farmUser.tokenBalance }
+    if (poolUser) {
+      return { stakedBalance: poolUser.stakedBalance, earnings: poolUser.earnings, tokenBalance: poolUser.tokenBalance }
     }
     return { stakedBalance: BIG_ZERO, earnings: BIG_ZERO, tokenBalance: BIG_ZERO }
 
-  }, [farmUser])
+  }, [poolUser])
 
   return (
     <Action>
       <Flex>
-        <FarmText color='secondary' pr='3px'>
+        <PoolText color='secondary' pr='3px'>
           {earnLabel}
-        </FarmText>
-        <FarmText color='primary'>
+        </PoolText>
+        <PoolText color='primary'>
           {TranslateString(999, 'Earned')}
-        </FarmText>
+        </PoolText>
       </Flex>
-      <HarvestAction farm={farm} earnings={earnings} pid={farm.pid} />
+      <HarvestAction pool={pool} earnings={earnings} pid={pool.pid} />
       <Flex>
-        <FarmText color='secondary' pr='3px'>
+        <PoolText color='secondary' pr='3px'>
           {lpLabel}
-        </FarmText>
-        <FarmText color='textSubtle'>
+        </PoolText>
+        <PoolText color='textSubtle'>
           {TranslateString(999, 'Staked')}
-        </FarmText>
+        </PoolText>
       </Flex>
       {
         // eslint-disable-next-line no-nested-ternary
@@ -145,8 +145,8 @@ const CardActions: React.FC<FarmCardActionsProps> = ({ farm, account }) => {
             {TranslateString(999, 'Approve Contract')}
           </Button>
           :
-          <StakeAction farm={farm} stakedBalance={stakedBalance} tokenBalance={tokenBalance} tokenName={lpLabel}
-                       pid={pid} depositFeeBP={farm.depositFeeBP} />
+          <StakeAction pool={pool} stakedBalance={stakedBalance} tokenBalance={tokenBalance} tokenName={lpLabel}
+                       pid={pid} depositFeeBP={pool.depositFeeBP} />
       }
     </Action>
   )

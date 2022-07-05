@@ -1,4 +1,4 @@
-import { SerializedFarm } from '../state/types'
+import { SerializedFarm, SerializedPool } from '../state/types'
 
 /**
  * Returns the first farm with a quote token that matches from an array of preferred quote tokens
@@ -7,9 +7,9 @@ import { SerializedFarm } from '../state/types'
  * @returns A preferred farm, if found - or the first element of the farms array
  */
 export const filterFarmsByQuoteToken = (
-  farms: SerializedFarm[],
+  farms: SerializedFarm[] | SerializedPool[],
   preferredQuoteTokens: string[] = ['BUSD', 'WBNB'],
-): SerializedFarm => {
+): SerializedFarm | SerializedPool => {
   const preferredFarm = farms.find((farm) => {
     return preferredQuoteTokens.some((quoteToken) => {
       return farm.quoteToken.symbol === quoteToken

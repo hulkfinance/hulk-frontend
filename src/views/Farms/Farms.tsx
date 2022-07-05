@@ -59,7 +59,7 @@ const BannerHeading = styled(Heading)`
 const Farms: React.FC<FarmsProps> = () => {
   const { login, logout } = useAuth()
   const { data: farmsLP, userDataLoaded, poolLength, regularHulkPerBlock } = useFarms()
-  const umPrice = usePriceHULKBusd()
+  const hulkPrice = usePriceHULKBusd()
   const [query, setQuery] = useState('')
   const [viewMode, setViewMode] = useUserFarmsViewMode()
   const { account } = useActiveWeb3React()
@@ -96,7 +96,7 @@ const Farms: React.FC<FarmsProps> = () => {
         const { hulkRewardsApr, lpRewardsApr } = isActive
           ? getFarmApr(
             new BigNumber(farm.poolWeight),
-            umPrice,
+            hulkPrice,
             totalLiquidity,
             farm.lpAddresses[ChainId.BSCTESTNET],
             regularHulkPerBlock || 0,
@@ -114,7 +114,7 @@ const Farms: React.FC<FarmsProps> = () => {
       }
       return farmsToDisplayWithAPR
     },
-    [umPrice, query, isActive, regularHulkPerBlock],
+    [hulkPrice, query, isActive, regularHulkPerBlock],
   )
   const [numberOfFarmsVisible, setNumberOfFarmsVisible] = useState(NUMBER_OF_FARMS_VISIBLE)
 

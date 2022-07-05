@@ -2,11 +2,11 @@ import chunk from 'lodash/chunk'
 import erc20 from '../../config/abi/erc20.json'
 import { getAddress, getMasterChefAddress } from '../../utils/addressHelpers'
 import { multicallv2 } from '../../utils/multicall'
-import { SerializedFarm } from '../types'
-import { SerializedFarmConfig } from '../../config/constants/types'
+import { SerializedPool } from '../types'
+import { SerializedPoolConfig } from '../../config/constants/types'
 
-const fetchFarmCalls = (farm: SerializedFarm) => {
-  const { lpAddresses, token, quoteToken } = farm
+const fetchPoolCalls = (pool: SerializedPool) => {
+  const { lpAddresses, token, quoteToken } = pool
   const lpAddress = getAddress(lpAddresses)
   return [
     // Balance of token in the LP contract
@@ -45,9 +45,9 @@ const fetchFarmCalls = (farm: SerializedFarm) => {
   ]
 }
 
-export const fetchPublicFarmsData = async (farms: SerializedFarmConfig[]): Promise<any[]> => {
-  const farmCalls = farms.flatMap((farm) => fetchFarmCalls(farm))
-  const chunkSize = farmCalls.length / farms.length
-  const farmMultiCallResult = await multicallv2(erc20, farmCalls)
-  return chunk(farmMultiCallResult, chunkSize)
+export const fetchPublicPoolsData = async (pools: SerializedPoolConfig[]): Promise<any[]> => {
+  const poolCalls = pools.flatMap((pool) => fetchPoolCalls(pool))
+  const chunkSize = poolCalls.length / pools.length
+  const poolMultiCallResult = await multicallv2(erc20, poolCalls)
+  return chunk(poolMultiCallResult, chunkSize)
 }

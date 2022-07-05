@@ -114,7 +114,7 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm, removed, hulkPrice, bnbPrice,
 
   const lpLabel = farm.lpSymbol
   const earnLabel = 'HULK'
-  const farmAPY = farm.apr || farm.defaultApr
+  const farmAPY = parseInt(String(farm.apr || farm.defaultApr))
 
   const timeToHarvest = useMemo(() => {
     if (farm.userData?.nextHarvestUntil) {
@@ -137,14 +137,6 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm, removed, hulkPrice, bnbPrice,
         <Row justifyContent='space-between' alignItems='center'>
           <FarmText>{TranslateString(352, 'APR')}:</FarmText>
           <FarmText style={{ display: 'flex', alignItems: 'center' }}>
-            <ApyButton
-              lpLabel={lpLabel}
-              quoteTokenAdresses={farm.quoteToken.address}
-              quoteTokenSymbol={farm.quoteToken.symbol}
-              tokenAddresses={farm.token.address}
-              hulkPrice={hulkPrice || BIG_ZERO}
-              apy={farm.apr || parseFloat(farm.defaultApr)}
-            />
             {farmAPY}%
           </FarmText>
         </Row>

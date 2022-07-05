@@ -1,6 +1,7 @@
 import BigNumber from 'bignumber.js'
 import { DEFAULT_GAS_LIMIT, DEFAULT_TOKEN_DECIMAL } from '../../config'
 import getGasPrice from '../getGasPrice'
+import { SerializedFarm } from '../../state/types'
 
 const options = {
   gasLimit: DEFAULT_GAS_LIMIT,
@@ -9,6 +10,7 @@ const options = {
 export const stakeFarm = async (masterChefContract: any, pid: any, amount: any, affiliateAddress: string) => {
   const value = new BigNumber(amount).times(DEFAULT_TOKEN_DECIMAL).toString()
 
+  console.log(pid, value, affiliateAddress)
   return masterChefContract.deposit(pid, value, affiliateAddress)
 }
 

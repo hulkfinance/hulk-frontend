@@ -1,23 +1,23 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import BigNumber from 'bignumber.js'
-import { Button, Flex, Heading, IconButton, AddIcon, MinusIcon, useModal } from '@hulkfinance/hulk-uikit'
+import { Button, Flex, Heading, useModal } from '@hulkfinance/hulk-uikit'
+import { parseUnits } from '@ethersproject/units'
 import DepositModal from '../DepositModal'
 import WithdrawModal from '../WithdrawModal'
 import useI18n from '../../../../hooks/useI18n'
 import { formatBigNumber, getBalanceNumber, getFullDisplayBalance } from '../../../../utils/formatBalance'
-import useStakeFarms from '../../../../hooks/Farms/useStakeFarms'
-import useUnstakeFarms from '../../../../hooks/Farms/useUnstakeFarms'
-import { FarmWithStakedValue } from '../../../../state/types'
-import { parseUnits } from '@ethersproject/units'
+import useStakePools from '../../../../hooks/Farms/useStakeFarms'
+import useUnstakePools from '../../../../hooks/Farms/useUnstakeFarms'
+import { PoolWithStakedValue } from '../../../../state/types'
 
-interface FarmCardActionsProps {
+interface PoolCardActionsProps {
   stakedBalance: BigNumber
   tokenBalance: BigNumber
   tokenName?: string
   pid: number
   depositFeeBP?: number,
-  farm: FarmWithStakedValue
+  pool: PoolWithStakedValue
 }
 
 const ButtonWrapper = styled.div`
@@ -27,26 +27,24 @@ const ButtonWrapper = styled.div`
   justify-content: space-between;
 `
 
-const StakeAction: React.FC<FarmCardActionsProps> = ({ farm, stakedBalance, tokenBalance, tokenName, pid, depositFeeBP}) => {
-  const TranslateString = useI18n()
-  const { onStake } = useStakeFarms(pid)
-  const { onUnstake } = useUnstakeFarms(pid)
+const StakeAction: React.FC<PoolCardActionsProps> = ({ pool, stakedBalance, tokenBalance, tokenName, pid, depositFeeBP}) => {
+  const { onStake } = useStakePools(pid)
+  const { onUnstake } = useUnstakePools(pid)
 
   const rawStakedBalance = getBalanceNumber(stakedBalance)
-  const displayBalance = rawStakedBalance.toLocaleString()
   const displayStaked = useMemo(() => {
     const decimals = 18
     if (stakedBalance.isZero()) {
       return 0
     }
-    const balance = getFullDisplayBalance(stakedBalance, farm.token.decimals, farm.token.decimals)
+    const balance = getFullDisplayBalance(stakedBalance, pool.token.decimals, pool.token.decimals)
     const balanceUnits = parseUnits(balance, decimals)
     return formatBigNumber(balanceUnits, decimals, decimals)
-  }, [farm.token.decimals, stakedBalance])
+  }, [pool.token.decimals, stakedBalance])
 
-  const [onPresentDeposit] = useModal(<DepositModal decimals={farm.token.decimals} max={tokenBalance} onConfirm={onStake} tokenName={tokenName} depositFeeBP={depositFeeBP} />)
+  const [onPresentDeposit] = useModal(<DepositModal decimals={pool.token.decimals} max={tokenBalance} onConfirm={onStake} tokenName={tokenName} depositFeeBP={depositFeeBP} />)
   const [onPresentWithdraw] = useModal(
-    <WithdrawModal decimals={farm.token.decimals} max={stakedBalance} onConfirm={onUnstake} tokenName={tokenName} />,
+    <WithdrawModal decimals={pool.token.decimals} max={stakedBalance} onConfirm={onUnstake} tokenName={tokenName} />,
   )
 
   return (
