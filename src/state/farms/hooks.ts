@@ -44,7 +44,7 @@ export const usePollFarmsWithUserData = (includeArchive = false) => {
  * 2 = CAKE-BNB LP
  * 3 = BUSD-BNB LP
  */
-const coreFarmPIDs: number[] = defaultChainId.toString() === String(ChainId.MAINNET) ? [0, 1, 2] : [0, 1, 2]
+const coreFarmPIDs: number[] = defaultChainId.toString() === String(ChainId.MAINNET) ? [0, 1, 5] : [0, 1, 5]
 export const usePollCoreFarmData = () => {
   const dispatch = useAppDispatch()
 
@@ -97,7 +97,7 @@ export const usePriceHULKBusd = (): BigNumber => {
 
 
 export const usePriceBnbBusd = (): BigNumber => {
-  const pid = 0 // BUSD-BNB LP
+  const pid = 5 // BUSD-BNB LP
   const farm = useFarmFromPid(pid)
   if (farm) {
     return farm.tokenPriceVsQuote ? new BigNumber(farm.tokenPriceVsQuote) : BIG_ZERO
@@ -106,7 +106,7 @@ export const usePriceBnbBusd = (): BigNumber => {
 }
 
 export const usePriceHulkBnb = (): BigNumber => {
-  const pid = 3 // HULK-BNB LP
+  const pid = 1 // HULK-BNB LP
   const farm = useFarmFromPid(pid)
   if (farm) {
     return farm.tokenPriceVsQuote ? new BigNumber(farm.tokenPriceVsQuote) : BIG_ZERO

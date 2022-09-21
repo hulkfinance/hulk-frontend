@@ -9,7 +9,7 @@ const farms: SerializedFarmConfig[] = [
    * These 3 farms (PID 0, 2, 3) should always be at the top of the file.
    */
   {
-    pid: 0,
+    pid: 5,
     v1pid: 0,
     lpSymbol: 'WBNB-BUSD',
     defaultApr: '10',
@@ -22,7 +22,7 @@ const farms: SerializedFarmConfig[] = [
     quoteToken: serializedTokens.wbnb,
   },
   {
-    pid: 1,
+    pid: 0,
     v1pid: 1,
     lpSymbol: 'HULK-BUSD LP',
     defaultApr: '10',
@@ -35,7 +35,7 @@ const farms: SerializedFarmConfig[] = [
     quoteToken: serializedTokens.busd,
   },
   {
-    pid: 3,
+    pid: 1,
     v1pid: 1,
     lpSymbol: 'HULK-BNB LP',
     defaultApr: '10',
@@ -48,7 +48,7 @@ const farms: SerializedFarmConfig[] = [
     quoteToken: serializedTokens.wbnb,
   },
   {
-    pid: 4,
+    pid: 2,
     v1pid: 1,
     lpSymbol: 'HULK-USDT LP',
     defaultApr: '10',
@@ -61,7 +61,7 @@ const farms: SerializedFarmConfig[] = [
     quoteToken: serializedTokens.usdt,
   },
   {
-    pid: 5,
+    pid: 6,
     v1pid: 1,
     lpSymbol: 'HULK-CAKE LP',
     defaultApr: '10',
@@ -74,7 +74,7 @@ const farms: SerializedFarmConfig[] = [
     quoteToken: serializedTokens.cake,
   },
   {
-    pid: 6,
+    pid: 7,
     v1pid: 1,
     lpSymbol: 'USDT-BUSD LP',
     defaultApr: '10',
@@ -87,7 +87,7 @@ const farms: SerializedFarmConfig[] = [
     quoteToken: serializedTokens.busd,
   },
   {
-    pid: 7,
+    pid: 8,
     v1pid: 1,
     lpSymbol: 'USDC-BUSD LP',
     defaultApr: '10',

@@ -4,7 +4,7 @@ import useBlockNumber from './useBlockNumber'
 
 
 export default function useReferral() {
-    const [affiliateAddress, setAffiliateAddress] = useState<string>('0x000000000000000000000000000000000000dEaD');
+    const [affiliateAddress, setAffiliateAddress] = useState<string>('0x0000000000000000000000000000000000000000');
     const blockNumber = useBlockNumber()
 
     useEffect(() => {

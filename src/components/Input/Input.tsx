@@ -3,7 +3,7 @@ import styled from 'styled-components'
 
 export interface InputProps {
   endAdornment?: React.ReactNode
-  onChange: (e: React.FormEvent<HTMLInputElement>) => void
+  onChange: (e: any ) => void
   placeholder?: string
   startAdornment?: React.ReactNode
   value: string

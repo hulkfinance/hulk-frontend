@@ -43,7 +43,7 @@ const deserializePool = (pool: SerializedPool): DeserializedPool => {
     }
 }
 
-const selectHulkPool = (state: State) => state.pools.data.find((f) => f.pid === 2)
+const selectHulkPool = (state: State) => state.pools.data.find((f) => f.pid === 3)
 const selectPoolByKey = (key: string, value: string | number) => (state: State) =>
 // @ts-ignore
     state.pools.data.find((f) => f[key] === value)

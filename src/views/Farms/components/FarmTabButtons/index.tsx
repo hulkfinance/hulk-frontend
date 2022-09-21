@@ -39,6 +39,15 @@ const Wrapper = styled.div`
   justify-content: center;
   align-items: center;
   margin-bottom: 32px;
+  flex-wrap: wrap;
+  * {
+    margin-bottom: 4px;
+  }
+  ${({ theme }) => theme.mediaQueries.sm} {
+    * {
+      margin-bottom: 0;
+    }
+  }
 `
 
 const ToggleWrapper = styled.div`

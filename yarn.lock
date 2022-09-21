@@ -1153,10 +1153,17 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.12.1", "@babel/runtime@^7.17.2", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
+"@babel/runtime@^7.12.1", "@babel/runtime@^7.17.2", "@babel/runtime@^7.6.3", "@babel/runtime@^7.9.2":
   version "7.18.3"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.3.tgz#c7b654b57f6f63cf7f8b418ac9ca04408c4579f4"
   integrity sha512-38Y8f7YUhce/K7RMwTp7m0uCumpv9hZkitCbBClqQIow1qSbCvGkcegKOXpEWCQLfWmevgRiWokZ1GkpfhbZug==
+  dependencies:
+    regenerator-runtime "^0.13.4"
+
+"@babel/runtime@^7.5.5", "@babel/runtime@^7.8.7":
+  version "7.18.6"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.18.6.tgz#6a1ef59f838debd670421f8c7f2cbb8da9751580"
+  integrity sha512-t9wi7/AW6XtKahAe20Yw0/mMljKq0B1r2fPdvaAdV/KPDZewFXdaaa6K7lxmZBZ8FBNpCiAT6iHPmd6QO9bKfQ==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -2255,9 +2262,9 @@
     toformat "^2.0.0"
 
 "@hulkfinance/hulk-uikit@^0.1.6":
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/@hulkfinance/hulk-uikit/-/hulk-uikit-0.1.7.tgz#7f9b0aade46fdc8c8fbfe30db2de3cc9113f8dc0"
-  integrity sha512-b2JyVwXl6piC6IGtrd50ADcTcLK4HP73BRtYgiiqMAti/nwIy40CJBcHTXEF0Bh6N4BrmtJi0z/fpIgu4dq2jA==
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@hulkfinance/hulk-uikit/-/hulk-uikit-0.1.8.tgz#6517ffbedfda8f67d4e9190477b1e95009f2abe1"
+  integrity sha512-poFM6uuKiA2xCVq3fRARGdSw9R/XHiyHkWSy0tY2+Qny2bQTbT4vmxXdvmn+F+6xH/f08hiEiqQAQG/PYCFNpQ==
   dependencies:
     "@types/lodash" "^4.14.162"
     "@types/styled-system" "^5.1.10"

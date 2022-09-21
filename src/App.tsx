@@ -41,7 +41,7 @@ const App: React.FC = () => {
   usePollCoreFarmData()
   useUserAgent()
   const { account } = useActiveWeb3React()
-  const {login} = useAuth()
+  const { login } = useAuth()
   const { onSaveAffiliateAddress } = useReferral()
   const { toasts, removeToast } = useContext(ToastContext)
   useEffect(() => {
@@ -74,9 +74,9 @@ const App: React.FC = () => {
 
   return (
     <>
-      <ListsUpdater/>
-      <TransactionUpdater/>
-      <MulticallUpdater/>
+      <ListsUpdater />
+      <TransactionUpdater />
+      <MulticallUpdater />
       <Router>
         <ResetCSS />
         <GlobalStyle />
@@ -87,9 +87,9 @@ const App: React.FC = () => {
               <Route path='/' exact>
                 <Home />
               </Route>
-              <Route path='/pre-sale' exact>
-                <PreSale />
-              </Route>
+              {/* <Route path='/pre-sale' exact> */}
+              {/*  <PreSale /> */}
+              {/* </Route> */}
               <Route path='/farms'>
                 <Farms />
               </Route>

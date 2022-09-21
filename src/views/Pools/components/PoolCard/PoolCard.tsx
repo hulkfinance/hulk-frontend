@@ -12,6 +12,7 @@ import { BIG_ZERO } from '../../../../utils/bigNumber'
 import { defaultChainId } from '../../../../config'
 import { getHULKTokenAddress } from '../../../../utils/addressHelpers'
 import { dateFormat, getBscScanLink } from '../../../../utils'
+import ApyButton from '../../../Farms/components/FarmCard/ApyButton'
 
 
 const RainbowLight = keyframes`
@@ -108,7 +109,7 @@ const PoolCard: React.FC<PoolCardProps> = ({ pool, removed, hulkPrice, bnbPrice,
 
   const totalValueFormatted =
     pool.liquidity && pool.liquidity.gt(0)
-      ? `$${pool.liquidity.toNumber().toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+      ? `$${pool.liquidity.toNumber().toLocaleString(undefined, { maximumFractionDigits: 2 })}`
       : ''
 
   const lpLabel = pool.lpSymbol
@@ -136,7 +137,21 @@ const PoolCard: React.FC<PoolCardProps> = ({ pool, removed, hulkPrice, bnbPrice,
         <Row justifyContent='space-between' alignItems='center'>
           <PoolText>{TranslateString(352, 'APR')}:</PoolText>
           <PoolText style={{ display: 'flex', alignItems: 'center' }}>
-            {poolAPY}%
+            {pool.apr ? (
+              <ApyButton
+                variant="text-and-button"
+                pid={pool.pid}
+                lpSymbol={pool.lpSymbol}
+                multiplier={pool.multiplier || '1x'}
+                lpLabel={lpLabel}
+                addLiquidityUrl=''
+                hulkPrice={hulkPrice}
+                apr={poolAPY}
+                displayApr={poolAPY.toString()}
+              />
+            ) : (
+              `${poolAPY.toString()}%`
+            )}
           </PoolText>
         </Row>
       )}

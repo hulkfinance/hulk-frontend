@@ -20,11 +20,11 @@ const config: MenuEntry[] = [
       },
     ],
   },
-  {
-    label: "Pre-Sale",
-    icon: "PreSaleIcon",
-    href: "/pre-sale",
-  },
+  // {
+  //   label: "Pre-Sale",
+  //   icon: "PreSaleIcon",
+  //   href: "/pre-sale",
+  // },
   {
     label: "Farms",
     icon: "FarmIcon",

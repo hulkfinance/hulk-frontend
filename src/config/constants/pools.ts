@@ -9,7 +9,7 @@ const farms: SerializedPoolConfig[] = [
    * These 3 farms (PID 0, 2, 3) should always be at the top of the file.
    */
   {
-    pid: 2,
+    pid: 3,
     v1pid: 1,
     lpSymbol: 'HULK (15)',
     defaultApr: '10',
@@ -22,7 +22,7 @@ const farms: SerializedPoolConfig[] = [
     quoteToken: serializedTokens.hulktoken,
   },
   {
-    pid: 8,
+    pid: 9,
     v1pid: 2,
     lpSymbol: 'HULK (30)',
     defaultApr: '10',
@@ -35,7 +35,7 @@ const farms: SerializedPoolConfig[] = [
     quoteToken: serializedTokens.hulktoken,
   },
   {
-    pid: 9,
+    pid: 10,
     v1pid: 3,
     lpSymbol: 'HULK (45)',
     defaultApr: '10',
@@ -48,7 +48,7 @@ const farms: SerializedPoolConfig[] = [
     quoteToken: serializedTokens.hulktoken,
   },
   {
-    pid: 10,
+    pid: 4,
     v1pid: 4,
     lpSymbol: 'HULK (90)',
     defaultApr: '10',

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import BigNumber from 'bignumber.js'
 import styled, { keyframes } from 'styled-components'
-import { Flex, Text, Skeleton } from '@hulkfinance/hulk-uikit'
+import { Flex, Text, Skeleton, IconButton, CalculateIcon } from '@hulkfinance/hulk-uikit'
 import DetailsSection from './DetailsSection'
 import CardHeading from './CardHeading'
 import CardActionsContainer from './CardActionsContainer'
@@ -9,7 +9,6 @@ import ApyButton from './ApyButton'
 import useI18n from '../../../../hooks/useI18n'
 import ExpandableSectionButton from '../../../../components/ExpandableSectionButton'
 import { FarmWithStakedValue } from '../../../../state/types'
-import { BIG_ZERO } from '../../../../utils/bigNumber'
 import { defaultChainId } from '../../../../config'
 import { getHULKTokenAddress } from '../../../../utils/addressHelpers'
 import { dateFormat, getBscScanLink } from '../../../../utils'
@@ -109,7 +108,7 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm, removed, hulkPrice, bnbPrice,
 
   const totalValueFormatted =
     farm.liquidity && farm.liquidity.gt(0)
-      ? `$${farm.liquidity.toNumber().toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+      ? `$${farm.liquidity.toNumber().toLocaleString(undefined, { maximumFractionDigits: 2 })}`
       : ''
 
   const lpLabel = farm.lpSymbol
@@ -137,7 +136,21 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm, removed, hulkPrice, bnbPrice,
         <Row justifyContent='space-between' alignItems='center'>
           <FarmText>{TranslateString(352, 'APR')}:</FarmText>
           <FarmText style={{ display: 'flex', alignItems: 'center' }}>
-            {farmAPY}%
+            {farm.apr ? (
+              <ApyButton
+                variant="text-and-button"
+                pid={farm.pid}
+                lpSymbol={farm.lpSymbol}
+                multiplier={farm.multiplier || '1x'}
+                lpLabel={lpLabel}
+                addLiquidityUrl=''
+                hulkPrice={hulkPrice}
+                apr={farmAPY}
+                displayApr={farmAPY.toString()}
+              />
+            ) : (
+              `${farmAPY.toString()}%`
+            )}
           </FarmText>
         </Row>
       )}
@@ -181,3 +194,7 @@ const FarmCard: React.FC<FarmCardProps> = ({ farm, removed, hulkPrice, bnbPrice,
 }
 
 export default FarmCard
+// {/*{farmAPY}%*/}
+// {/*<IconButton variant='text' ml='4px'>*/}
+// {/*  <CalculateIcon width='18px' />*/}
+// {/*</IconButton>*/}
